@@ -1,15 +1,13 @@
 #include <GL/glut.h>
-#include <iostream>
-#include <math.h>
 
-const double PI = acos(-1.0);
-const double EPS = 1e-2;
+#include "shared.h"
+#include "FuncAndGrads.h"
 
 void on_keyboard(unsigned char key, int x, int y);
 void on_reshape(int width, int height);
 void on_display(void);
 void draw_manifold(void);
-void set_normal_and_vertex(double x, double y);
+void draw_sphere(double r, double x, double y);
 
 int main(int argc, char** argv) {
 	glutInit(&argc, argv);
@@ -24,8 +22,11 @@ int main(int argc, char** argv) {
 	glutDisplayFunc(on_display);
 
 	glClearColor(0, 0, 0, 0);
+
+	glEnable(GL_LIGHTING);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_NORMALIZE);
+	glShadeModel(GL_SMOOTH);
 
 	glutMainLoop();
 
@@ -48,91 +49,95 @@ void on_reshape(int width, int height) {
 		(GLdouble)60.0,
 		(GLdouble)width / height,
 		(GLdouble)1.0,
-		(GLdouble)10.0
+		(GLdouble)100.0
 	);
 }
 
 void on_display(void) {
-	GLfloat light_position[] = { 1, 2, 3, 0};
-
-	GLfloat ambient_light[] = { 0.1, 0.1, 0.1, 1 };
-	GLfloat ambient_material[] = { 0.25, 0.25, 0.25, 1 };
-
-	GLfloat diffuse_light[] = { 0.75, 0, 0, 1 };
-	GLfloat diffuse_material[] = { 0.5, 0.5, 0.5, 1 };
-
-	GLfloat specular_light[] = { 0.75, 0.25, 0, 1 };
-	GLfloat specular_material[] = { 0.75, 0.75, 0.75, 1 };
-
-	GLfloat shininess = 10;
-
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	/*glBegin(GL_LINES);
-	{
-		glColor3f(1, 0, 0);
-		glVertex3f(0, 0, 0);
-		glVertex3f(1, 0, 0);
-
-		glColor3f(0, 1, 0);
-		glVertex3f(0, 0, 0);
-		glVertex3f(0, 1, 0);
-
-		glColor3f(0, 0, 1);
-		glVertex3f(0, 0, 0);
-		glVertex3f(0, 0, 1);
-	}
-	glEnd();*/
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	gluLookAt(
-		(GLdouble)1, (GLdouble)1, (GLdouble)2,
-		(GLdouble)0, (GLdouble)0, (GLdouble)0,
+		(GLdouble)2, (GLdouble)60, (GLdouble)5,
+		(GLdouble)0, (GLdouble)5, (GLdouble)0,
 		(GLdouble)0, (GLdouble)1, (GLdouble)0
 	);
 
-	glEnable(GL_LIGHTING);
+	GLfloat light_position[] = { 1, 1, 1, 0};
+	GLfloat ambient_light[] = { 0.1, 0.1, 0.1, 1 };
+	GLfloat diffuse_light[] = { 1, 1, 1, 1 };
+	GLfloat specular_light[] = { 0.75, 0.75, 0.75, 1 };
+
 	glEnable(GL_LIGHT0);
 	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 	glLightfv(GL_LIGHT0, GL_AMBIENT, ambient_light);
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse_light);
 	glLightfv(GL_LIGHT0, GL_SPECULAR, specular_light);
 
+	draw_manifold();
+
+	// showing just 20 iterations as a test
+	double x = -4.5, y = -4.5, lr = 0.1;
+	for (int i = 0; i < 20; i++) {
+		draw_sphere(0.5, x, y);
+		x -= lr * grad_x(x, y);
+		y -= lr * grad_y(x, y);
+	}
+
+	glutSwapBuffers();
+}
+
+void draw_sphere(double r, double x, double y) {
+	/*
+	Draws little sphere in the given point. Using for descent visualization.
+	*/
+
+	GLfloat ambient_material[] = { 0.25, 0.25, 0.25, 1 };
+	GLfloat diffuse_material[] = { 0.75, 0.5, 0.25, 1 };
+	GLfloat specular_material[] = { 1, 0, 0, 1 };
+	GLfloat shininess = 10;
 	glMaterialfv(GL_FRONT, GL_AMBIENT, ambient_material);
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse_material);
 	glMaterialfv(GL_FRONT, GL_SPECULAR, specular_material);
 	glMaterialf(GL_FRONT, GL_SHININESS, shininess);
 
-	glShadeModel(GL_SMOOTH);
-
-	draw_manifold();
-	//glutSolidSphere(2, 50, 50);
-
-	glutSwapBuffers();
+	glPushMatrix();
+	glTranslatef(x + r, func(x, y) - r, y + r);
+	glutSolidSphere(r, 10, 10);
+	glPopMatrix();
 }
 
 void draw_manifold() {
-	double u_range[] = { 0, 2 * PI };
-	//double v_range[] = { 0, PI / 2 };
-	double v_range[] = { PI / 2, PI };
-	double step = 0.01;
+	/*
+	Draws 2D manifold in the 3D. It's drawn as stripes of triangles.
+	*/
 
-	for (double v = v_range[0]; v <= v_range[1] + EPS; v += step) {
+	GLfloat ambient_material[] = { 0.25, 0.25, 0.25, 1 };
+	GLfloat diffuse_material[] = { 0.25, 0.5, 0.75, 1 };
+	GLfloat specular_material[] = { 0, 0, 1, 1 };
+	GLfloat shininess = 10;
+	glMaterialfv(GL_FRONT, GL_AMBIENT, ambient_material);
+	glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse_material);
+	glMaterialfv(GL_FRONT, GL_SPECULAR, specular_material);
+	glMaterialf(GL_FRONT, GL_SHININESS, shininess);
+
+	pair<double, double> x_range = { -6, 6 };
+	pair<double, double> y_range = { -6, 6 };
+	double step = 0.1;
+	
+	auto set_normal_and_vertex = [&](double x, double y) {
+		double z = func(x, y);
+		glVertex3f(x, z, y);
+		glNormal3f(-grad_x(x, y), -grad_z(x, y), -grad_y(x, y));
+	};
+
+	for (double y = y_range.first; y <= y_range.second + EPS; y += step) {
 		glBegin(GL_TRIANGLE_STRIP);
-		for (double u = u_range[0]; u <= u_range[1] + EPS; u += step) {
-			set_normal_and_vertex(u, v);
-			set_normal_and_vertex(u, v + step);
+		for (double x = x_range.first; x <= x_range.second + EPS; x += step) {
+			set_normal_and_vertex(x, y);
+			set_normal_and_vertex(x, y - step);
 		}
 		glEnd();
 	}
-}
-
-void set_normal_and_vertex(double u, double v) {
-	double x = cos(u) * sin(v);
-	double y = sin(u) * sin(v);
-	double z = cos(v);
-
-	glVertex3f((GLfloat)x, (GLfloat)z, (GLfloat)y);
-	glNormal3f((GLfloat)-2*x, (GLfloat)-2*z, (GLfloat)-2*y);
 }
