@@ -6,10 +6,10 @@
 
 class ManifoldBase {
 public:
-	virtual Point func(double, double) = 0;
-	virtual double grad_x(const Point&) = 0;
-	virtual double grad_y(const Point&) = 0;
-	virtual double grad_z(const Point&) = 0;
+	virtual Point func(double, double);
+	virtual double grad_x(const Point&);
+	virtual double grad_y(const Point&);
+	virtual double grad_z(const Point&);
 
 	Point normal_vec(const Point&);
 	Point normal_vec(double, double, double);

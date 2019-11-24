@@ -12,8 +12,8 @@ std::vector<std::vector<Point>> ManifoldBase::sample(
 	Sampled points as well as normal vectors in these points are returned.
 	*/
 
-	if (x_range.first >= x_range.second - EPS ||
-		y_range.first >= y_range.second - EPS)
+	if (x_range.first > x_range.second + EPS ||
+		y_range.first > y_range.second + EPS)
 		throw std::domain_error("Ranges are not valid");
 
 	std::vector<double> x_linspace = LinearAlgebra::linspace(
@@ -45,4 +45,20 @@ Point ManifoldBase::normal_vec(double x, double y, double z) {
 	Point pt = *new Point(x, y, z);
 
 	return normal_vec(pt);
+}
+
+Point ManifoldBase::func(double x, double y) {
+	return *new Point();
+}
+
+double ManifoldBase::grad_x(const Point& pt) {
+	return 0.0;
+}
+
+double ManifoldBase::grad_y(const Point& pt) {
+	return 0.0;
+}
+
+double ManifoldBase::grad_z(const Point& pt) {
+	return 0.0;
 }

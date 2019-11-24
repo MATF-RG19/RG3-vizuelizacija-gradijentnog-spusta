@@ -126,7 +126,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="EllipticParaboloid.cpp" />
+    <ClCompile Include="HyperbolicParaboloid.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="ManifoldBase.cpp" />
+    <ClCompile Include="MultivariateSine.cpp" />
+    <ClCompile Include="shared.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="EllipticParaboloid.h" />
+    <ClInclude Include="HyperbolicParaboloid.h" />
+    <ClInclude Include="ManifoldBase.h" />
+    <ClInclude Include="MultivariateSine.h" />
+    <ClInclude Include="shared.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

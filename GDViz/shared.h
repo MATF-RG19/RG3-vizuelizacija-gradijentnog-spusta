@@ -15,7 +15,10 @@ struct Point {
 	Point(double, double, double);
 	Point(double, double, double, double, double, double);
 
-	friend std::ostream& operator << (std::ostream& out, const Point& pt);
+	Point operator*(const double) const;
+	Point operator+(const Point&) const;
+	Point operator-(const Point&) const;
+	friend std::ostream& operator<<(std::ostream& out, const Point& pt);
 };
 
 namespace LinearAlgebra {
@@ -81,3 +84,5 @@ std::ostream& operator << (std::ostream& out, const std::vector<T>& vec) {
 
 	return out;
 }
+
+int sign(double);

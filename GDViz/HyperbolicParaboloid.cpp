@@ -10,7 +10,7 @@ HyperbolicParaboloid::HyperbolicParaboloid(double a = 1, double b = 1) {
 
 Point HyperbolicParaboloid::func(double x, double y) {
 	/*
-	f(x, y) = (x^2)/(a^2) - (y^2)/(b^2) - z
+	z = (x^2)/(a^2) - (y^2)/(b^2)
 	*/
 
 	double z = (x * x) / a2 - (y * y) / b2;
