@@ -1,7 +1,14 @@
-#include <GL/glut.h>
+#include <iostream>
+#include <utility>
+#include <vector>
 
+#include <GL/glut.h>
+#include "EllipticParaboloid.h"
+#include "HyperbolicParaboloid.h"
 #include "shared.h"
-#include "FuncAndGrads.h"
+
+const int INIT_WINDOW_SIZE[] = { 800, 800 };
+const int INIT_WINDOW_POSITION[] = { 100, 100 };
 
 void on_keyboard(unsigned char key, int x, int y);
 void on_reshape(int width, int height);
@@ -13,8 +20,8 @@ int main(int argc, char** argv) {
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
 
-	glutInitWindowSize(600, 600);
-	glutInitWindowPosition(100, 100);
+	glutInitWindowSize(INIT_WINDOW_SIZE[0], INIT_WINDOW_SIZE[1]);
+	glutInitWindowPosition(INIT_WINDOW_POSITION[0], INIT_WINDOW_POSITION[1]);
 	glutCreateWindow(argv[0]);
 
 	glutKeyboardFunc(on_keyboard);
@@ -46,10 +53,10 @@ void on_reshape(int width, int height) {
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	gluPerspective(
-		(GLdouble)60.0,
-		(GLdouble)width / height,
-		(GLdouble)1.0,
-		(GLdouble)100.0
+		static_cast<GLdouble>(60.0),
+		static_cast<GLdouble>(width / height),
+		static_cast<GLdouble>(1.0),
+		static_cast<GLdouble>(100.0)
 	);
 }
 
@@ -59,15 +66,15 @@ void on_display(void) {
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	gluLookAt(
-		(GLdouble)2, (GLdouble)60, (GLdouble)5,
-		(GLdouble)0, (GLdouble)5, (GLdouble)0,
-		(GLdouble)0, (GLdouble)1, (GLdouble)0
+		static_cast<GLdouble>(5), static_cast<GLdouble>(12), static_cast<GLdouble>(5),
+		static_cast<GLdouble>(0), static_cast<GLdouble>(5), static_cast<GLdouble>(0),
+		static_cast<GLdouble>(0), static_cast<GLdouble>(1), static_cast<GLdouble>(0)
 	);
 
-	GLfloat light_position[] = { 1, 1, 1, 0};
+	GLfloat light_position[] = { 0, 1, 0, 0};
 	GLfloat ambient_light[] = { 0.1, 0.1, 0.1, 1 };
-	GLfloat diffuse_light[] = { 1, 1, 1, 1 };
-	GLfloat specular_light[] = { 0.75, 0.75, 0.75, 1 };
+	GLfloat diffuse_light[] = { 0.7, 0.7, 0.7, 1 };
+	GLfloat specular_light[] = { 0.9, 0.9, 0.9, 1 };
 
 	glEnable(GL_LIGHT0);
 	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
@@ -78,12 +85,12 @@ void on_display(void) {
 	draw_manifold();
 
 	// showing just 20 iterations as a test
-	double x = -4.5, y = -4.5, lr = 0.1;
+	/*double x = -2.5, y = -2, lr = 0.1;
 	for (int i = 0; i < 20; i++) {
 		draw_sphere(0.5, x, y);
 		x -= lr * grad_x(x, y);
 		y -= lr * grad_y(x, y);
-	}
+	}*/
 
 	glutSwapBuffers();
 }
@@ -93,7 +100,7 @@ void draw_sphere(double r, double x, double y) {
 	Draws little sphere in the given point. Using for descent visualization.
 	*/
 
-	GLfloat ambient_material[] = { 0.25, 0.25, 0.25, 1 };
+	/*GLfloat ambient_material[] = { 0.25, 0.25, 0.25, 1 };
 	GLfloat diffuse_material[] = { 0.75, 0.5, 0.25, 1 };
 	GLfloat specular_material[] = { 1, 0, 0, 1 };
 	GLfloat shininess = 10;
@@ -105,7 +112,7 @@ void draw_sphere(double r, double x, double y) {
 	glPushMatrix();
 	glTranslatef(x + r, func(x, y) - r, y + r);
 	glutSolidSphere(r, 10, 10);
-	glPopMatrix();
+	glPopMatrix();*/
 }
 
 void draw_manifold() {
@@ -113,30 +120,33 @@ void draw_manifold() {
 	Draws 2D manifold in the 3D. It's drawn as stripes of triangles.
 	*/
 
-	GLfloat ambient_material[] = { 0.25, 0.25, 0.25, 1 };
-	GLfloat diffuse_material[] = { 0.25, 0.5, 0.75, 1 };
-	GLfloat specular_material[] = { 0, 0, 1, 1 };
+	GLfloat ambient_material[] = { 0.5, 0.5, 0.5, 1 };
+	GLfloat diffuse_material[] = { 0.25, 0.25, 0.75, 1 };
+	GLfloat specular_material[] = { 0.5, 0, 0, 1 };
 	GLfloat shininess = 10;
 	glMaterialfv(GL_FRONT, GL_AMBIENT, ambient_material);
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse_material);
 	glMaterialfv(GL_FRONT, GL_SPECULAR, specular_material);
 	glMaterialf(GL_FRONT, GL_SHININESS, shininess);
 
-	pair<double, double> x_range = { -6, 6 };
-	pair<double, double> y_range = { -6, 6 };
-	double step = 0.1;
-	
-	auto set_normal_and_vertex = [&](double x, double y) {
-		double z = func(x, y);
-		glVertex3f(x, z, y);
-		glNormal3f(-grad_x(x, y), -grad_z(x, y), -grad_y(x, y));
-	};
+	int sample_size = 100;
+	std::pair<double, double> x_range = { -3.0, 3.0 };
+	std::pair<double, double> y_range = { -2.0, 2.0 };
+	// EllipticParaboloid* EP = new EllipticParaboloid(1.5, 1.5);
+	HyperbolicParaboloid* HP = new HyperbolicParaboloid(1.5, 1.5);
+	std::vector<std::vector<Point>> sampled = HP->sample(x_range, y_range, sample_size);
+	auto sampled_T = TensorManipulation::transpose(sampled);
 
-	for (double y = y_range.first; y <= y_range.second + EPS; y += step) {
+	for (int i = 1; i < sample_size; i++) {
 		glBegin(GL_TRIANGLE_STRIP);
-		for (double x = x_range.first; x <= x_range.second + EPS; x += step) {
-			set_normal_and_vertex(x, y);
-			set_normal_and_vertex(x, y - step);
+		for (int j = 0; j < sample_size; j++) {
+			Point cur_pt = sampled_T[i][j];
+			glVertex3f(cur_pt.x, cur_pt.z, cur_pt.y);
+			glNormal3f(cur_pt.nx, cur_pt.nz, cur_pt.ny);
+
+			Point prev_pt = sampled_T[i - 1][j];
+			glVertex3f(prev_pt.x, prev_pt.z, prev_pt.y);
+			glNormal3f(prev_pt.nx, prev_pt.nz, prev_pt.ny);
 		}
 		glEnd();
 	}
