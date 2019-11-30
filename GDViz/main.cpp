@@ -1,36 +1,22 @@
 #include <iostream>
 #include <utility>
 #include <vector>
+#include <tuple>
+#include <algorithm>
 
 #include <GL/glut.h>
 #include "EllipticParaboloid.h"
 #include "HyperbolicParaboloid.h"
 #include "MultivariateSine.h"
+#include "main.h"
 #include "shared.h"
 
-const int INIT_WINDOW_SIZE[] = { 800, 800 };
-const int INIT_WINDOW_POSITION[] = { 100, 100 };
-const int TIMER_INTERVAL = 10;
-const int TIMER_ID = 0;
-const double SPHERE_RADIUS = 0.25;
-const double LEARNING_RATE = 0.01;
-
+// global variables
 bool ongoing_animation;
-Point sphere_center;
+Point sphere_center; // center of sphere used for GD
 ManifoldBase* manifold = nullptr;
-
-void on_keyboard(unsigned char key, int x, int y);
-void on_reshape(int width, int height);
-void on_display(void);
-void on_timer(int);
-
-void draw_manifold(void);
-void draw_sphere(double);
-
-
-enum class ManifoldType {
-	elliptic_paraboloid, hyperbolic_paraboloid, multivariate_sine
-} manifold_type;
+std::vector<std::vector<Point>> manifold_pts; // sampled points of manifold; lazy update
+std::tuple<double, double, double> zoom_factor(1.0, 1.0, 1.0);
 
 int main(int argc, char** argv) {
 	glutInit(&argc, argv);
@@ -43,6 +29,7 @@ int main(int argc, char** argv) {
 	glutKeyboardFunc(on_keyboard);
 	glutReshapeFunc(on_reshape);
 	glutDisplayFunc(on_display);
+	glutMouseFunc(on_mouse);
 
 	glClearColor(0, 0, 0, 0);
 
@@ -57,26 +44,56 @@ int main(int argc, char** argv) {
 }
 
 void on_keyboard(unsigned char key, int x, int y) {
+	/*
+	glutPostRedisplay() won't be called in case the same manifold is chosen twice.
+	*/
+
 	switch (key) {
 	case 27:
 		exit(0);
 	case '1':
-		manifold_type = ManifoldType::elliptic_paraboloid;
-		glutPostRedisplay();
+		if (manifold_type != ManifoldType::elliptic_paraboloid) {
+			manifold_type = ManifoldType::elliptic_paraboloid;
+			if (manifold) {
+				delete(manifold);
+				manifold = nullptr;
+			}
+
+			manifold_pts.clear();
+			manifold = dynamic_cast<ManifoldBase*>(new EllipticParaboloid(1.5, 1.5));
+			glutPostRedisplay();
+		}
 		break;
 	case '2':
-		manifold_type = ManifoldType::hyperbolic_paraboloid;
-		glutPostRedisplay();
+		if (manifold_type != ManifoldType::hyperbolic_paraboloid) {
+			manifold_type = ManifoldType::hyperbolic_paraboloid;
+			if (manifold) {
+				delete(manifold);
+				manifold = nullptr;
+			}
+
+			manifold_pts.clear();
+			manifold = dynamic_cast<ManifoldBase*>(new HyperbolicParaboloid(1.5, 1.5));
+			glutPostRedisplay();
+		}
 		break;
 	case '3':
-		manifold_type = ManifoldType::multivariate_sine;
-		glutPostRedisplay();
+		if (manifold_type != ManifoldType::multivariate_sine) {
+			manifold_type = ManifoldType::multivariate_sine;
+			if (manifold) {
+				delete(manifold);
+				manifold = nullptr;
+			}
+
+			manifold_pts.clear();
+			manifold = dynamic_cast<ManifoldBase*>(new MultivariateSine(1.0));
+			glutPostRedisplay();
+		}
 		break;
 	case 'G':
 	case 'g':
 		if (!ongoing_animation) {
-			auto sampled = manifold->sample({ -2.5, -2.5 }, { 5.0, 5.0 }, 1); // TODO: hardcoded values
-			sphere_center = sampled[0][0];
+			sphere_center = manifold->sample(-2.5, 5.0);
 			ongoing_animation = true;
 
 			glutTimerFunc(TIMER_INTERVAL, on_timer, TIMER_ID);
@@ -117,6 +134,11 @@ void on_display(void) {
 		static_cast<GLdouble>(0), static_cast<GLdouble>(5), static_cast<GLdouble>(0),
 		static_cast<GLdouble>(0), static_cast<GLdouble>(1), static_cast<GLdouble>(0)
 	);
+	glScalef(
+		static_cast<GLfloat>(std::get<0>(zoom_factor)),
+		static_cast<GLfloat>(std::get<1>(zoom_factor)),
+		static_cast<GLfloat>(std::get<2>(zoom_factor))
+	);
 
 	GLfloat light_position[] = { 0, 1, 0, 0};
 	GLfloat ambient_light[] = { 0.1, 0.1, 0.1, 1 };
@@ -129,9 +151,10 @@ void on_display(void) {
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse_light);
 	glLightfv(GL_LIGHT0, GL_SPECULAR, specular_light);
 
-	draw_manifold();
-	if (ongoing_animation)
+	if (manifold) {
+		draw_manifold();
 		draw_sphere(SPHERE_RADIUS);
+	}
 
 	glutSwapBuffers();
 }
@@ -144,7 +167,9 @@ void on_timer(int id) {
 
 	sphere_center.x -= LEARNING_RATE * sphere_center.x;
 	sphere_center.y -= LEARNING_RATE * sphere_center.y;
-	sphere_center.z -= LEARNING_RATE * sphere_center.z;
+	sphere_center = manifold->sample(sphere_center.x, sphere_center.y);
+	std::cerr << "Sphere center: " << sphere_center << std::endl;
+
 	if (ongoing_animation)
 		glutTimerFunc(TIMER_INTERVAL, on_timer, TIMER_ID);
 }
@@ -163,10 +188,29 @@ void draw_sphere(double r) {
 	glMaterialfv(GL_FRONT, GL_SPECULAR, specular_material);
 	glMaterialf(GL_FRONT, GL_SHININESS, shininess);
 
+	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 	glTranslatef(sphere_center.x + r, sphere_center.z - r, sphere_center.y + r);
+	glColor4f(1.0, 1.0, 1.0, 1.0);
 	glutSolidSphere(r, 10, 10);
 	glPopMatrix();
+}
+
+void on_mouse(int button, int state, int x, int y) {
+	if (button == 3 || button == 4) { // scroll events
+		std::get<0>(zoom_factor) += (button == 3 ? 1 : -1) * ZOOM_STEP;
+		std::get<1>(zoom_factor) += (button == 3 ? 1 : -1) * ZOOM_STEP;
+		std::get<2>(zoom_factor) += (button == 3 ? 1 : -1) * ZOOM_STEP;
+
+		std::get<0>(zoom_factor) = std::clamp(std::get<0>(zoom_factor),
+			1.0 / ZOOM_THRESHOLD, ZOOM_THRESHOLD);
+		std::get<1>(zoom_factor) = std::clamp(std::get<1>(zoom_factor),
+			1.0 / ZOOM_THRESHOLD, ZOOM_THRESHOLD);
+		std::get<2>(zoom_factor) = std::clamp(std::get<2>(zoom_factor),
+			1.0 / ZOOM_THRESHOLD, ZOOM_THRESHOLD);
+
+		glutPostRedisplay();
+	}
 }
 
 void draw_manifold() {
@@ -183,35 +227,35 @@ void draw_manifold() {
 	glMaterialfv(GL_FRONT, GL_SPECULAR, specular_material);
 	glMaterialf(GL_FRONT, GL_SHININESS, shininess);
 
-	switch (manifold_type) {
-	case ManifoldType::elliptic_paraboloid:
-		manifold = (ManifoldBase*)new EllipticParaboloid(1.5, 1.5);
-		break;
-	case ManifoldType::hyperbolic_paraboloid:
-		manifold = (ManifoldBase*)new HyperbolicParaboloid(1.5, 1.5);
-		break;
-	case ManifoldType::multivariate_sine:
-		manifold = (ManifoldBase*)new MultivariateSine(1.0);
-		break;
-	}
+	init_manifold();
+	auto sampled = TensorManipulation::transpose(manifold_pts);
 
-	int sample_size = 500;
-	std::pair<double, double> x_range = { -10.0, 10.0 }; // TODO: hardcoded values
-	std::pair<double, double> y_range = { -10.0, 10.0 }; // TODO: hardcoded values
-	std::vector<std::vector<Point>> sampled = manifold->sample(x_range, y_range, sample_size);
-	auto sampled_T = TensorManipulation::transpose(sampled);
-
-	for (int i = 1; i < sample_size; i++) {
+	glColor4f(1.0, 1.0, 1.0, 0.75);
+	for (int i = 1; i < MANIFOLD_SAMPLE_SIZE; i++) {
 		glBegin(GL_TRIANGLE_STRIP);
-		for (int j = 0; j < sample_size; j++) {
-			Point cur_pt = sampled_T[i][j];
+		for (int j = 0; j < MANIFOLD_SAMPLE_SIZE; j++) {
+			Point cur_pt = sampled[i][j];
 			glVertex3f(cur_pt.x, cur_pt.z, cur_pt.y);
 			glNormal3f(cur_pt.nx, cur_pt.nz, cur_pt.ny);
 
-			Point prev_pt = sampled_T[i - 1][j];
+			Point prev_pt = sampled[i - 1][j];
 			glVertex3f(prev_pt.x, prev_pt.z, prev_pt.y);
 			glNormal3f(prev_pt.nx, prev_pt.nz, prev_pt.ny);
 		}
 		glEnd();
 	}
+}
+
+void init_manifold(void) {
+	if (!manifold->get_lazy_flag()) {
+		std::pair<double, double> x_range = { -10.0, 10.0 }; // TODO: hardcoded values
+		std::pair<double, double> y_range = { -10.0, 10.0 }; // TODO: hardcoded values
+		manifold_pts = manifold->sample(
+			x_range,
+			y_range,
+			MANIFOLD_SAMPLE_SIZE
+		);
+	}
+
+	manifold->set_lazy_flag(true);
 }

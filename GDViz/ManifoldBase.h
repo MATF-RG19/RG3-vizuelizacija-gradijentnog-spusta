@@ -5,6 +5,9 @@
 #include "shared.h"
 
 class ManifoldBase {
+protected:
+	bool is_calculated = false; // manifold won't be sampled twice
+
 public:
 	virtual Point func(double, double);
 	virtual double grad_x(const Point&);
@@ -18,4 +21,8 @@ public:
 		const std::pair<double, double>&,
 		const std::pair<double, double>&,
 		int);
+	Point sample(double, double);
+
+	void set_lazy_flag(bool);
+	bool get_lazy_flag(void);
 };

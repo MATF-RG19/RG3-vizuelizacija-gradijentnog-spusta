@@ -33,6 +33,12 @@ std::vector<std::vector<Point>> ManifoldBase::sample(
 	return sampled;
 }
 
+Point ManifoldBase::sample(double x, double y) {
+	auto sampled = ManifoldBase::sample({ x, x }, { y, y }, 1);
+
+	return sampled[0][0];
+}
+
 Point ManifoldBase::normal_vec(const Point& pt) {
 	double nx = -grad_x(pt);
 	double ny = -grad_y(pt);
@@ -61,4 +67,12 @@ double ManifoldBase::grad_y(const Point& pt) {
 
 double ManifoldBase::grad_z(const Point& pt) {
 	return 0.0;
+}
+
+void ManifoldBase::set_lazy_flag(bool lazy_flag) {
+	is_calculated = lazy_flag;
+}
+
+bool ManifoldBase::get_lazy_flag(void) {
+	return is_calculated;
 }
