@@ -12,11 +12,11 @@
 #include "shared.h"
 
 // global variables
-bool ongoing_animation;
+bool initialized_animation, ongoing_animation;
 Point sphere_center; // center of sphere used for GD
 ManifoldBase* manifold = nullptr;
 std::vector<std::vector<Point>> manifold_pts; // sampled points of manifold; lazy update
-std::tuple<double, double, double> zoom_factor(1.0, 1.0, 1.0);
+std::tuple<double, double, double> zoom_factor(1.0, 1.0, 1.0), move_factor(0.0, 0.0, 0.0);
 
 int main(int argc, char** argv) {
 	glutInit(&argc, argv);
@@ -27,6 +27,7 @@ int main(int argc, char** argv) {
 	glutCreateWindow(argv[0]);
 
 	glutKeyboardFunc(on_keyboard);
+	glutSpecialFunc(on_special);
 	glutReshapeFunc(on_reshape);
 	glutDisplayFunc(on_display);
 	glutMouseFunc(on_mouse);
@@ -90,12 +91,17 @@ void on_keyboard(unsigned char key, int x, int y) {
 			glutPostRedisplay();
 		}
 		break;
+	case 'I':
+	case 'i':
+		sphere_center = manifold->sample(-2.5, 5.0);
+		initialized_animation = true;
+		ongoing_animation = false;
+		glutPostRedisplay();
+		break;
 	case 'G':
 	case 'g':
-		if (!ongoing_animation) {
-			sphere_center = manifold->sample(-2.5, 5.0);
+		if (!ongoing_animation && initialized_animation) {
 			ongoing_animation = true;
-
 			glutTimerFunc(TIMER_INTERVAL, on_timer, TIMER_ID);
 		}
 		break;
@@ -103,6 +109,43 @@ void on_keyboard(unsigned char key, int x, int y) {
 	case 's':
 		ongoing_animation = false;
 		break;
+	}
+}
+
+void on_special(int key, int x, int y) {
+	if (manifold) {
+		switch (key) {
+		case GLUT_KEY_LEFT:
+			std::get<0>(move_factor) += MOVE_STEP;
+			if (!ongoing_animation)
+				glutPostRedisplay();
+			break;
+		case GLUT_KEY_RIGHT:
+			std::get<0>(move_factor) -= MOVE_STEP;
+			if (!ongoing_animation)
+				glutPostRedisplay();
+			break;
+		case GLUT_KEY_UP:
+			std::get<2>(move_factor) += MOVE_STEP;
+			if (!ongoing_animation)
+				glutPostRedisplay();
+			break;
+		case GLUT_KEY_DOWN:
+			std::get<2>(move_factor) -= MOVE_STEP;
+			if (!ongoing_animation)
+				glutPostRedisplay();
+			break;
+		case GLUT_KEY_PAGE_UP:
+			std::get<1>(move_factor) -= MOVE_STEP;
+			if (!ongoing_animation)
+				glutPostRedisplay();
+			break;
+		case GLUT_KEY_PAGE_DOWN:
+			std::get<1>(move_factor) += MOVE_STEP;
+			if (!ongoing_animation)
+				glutPostRedisplay();
+			break;
+		}
 	}
 }
 
@@ -138,6 +181,11 @@ void on_display(void) {
 		static_cast<GLfloat>(std::get<0>(zoom_factor)),
 		static_cast<GLfloat>(std::get<1>(zoom_factor)),
 		static_cast<GLfloat>(std::get<2>(zoom_factor))
+	);
+	glTranslatef(
+		static_cast<GLfloat>(std::get<0>(move_factor)),
+		static_cast<GLfloat>(std::get<1>(move_factor)),
+		static_cast<GLfloat>(std::get<2>(move_factor))
 	);
 
 	GLfloat light_position[] = { 0, 1, 0, 0};
@@ -176,7 +224,7 @@ void on_timer(int id) {
 
 void draw_sphere(double r) {
 	/*
-	Draws little sphere in the given point. Using for descent visualization.
+	Draws little sphere in the given point. Used for GD visualization.
 	*/
 
 	GLfloat ambient_material[] = { 0.25, 0.25, 0.25, 1 };
@@ -191,8 +239,7 @@ void draw_sphere(double r) {
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 	glTranslatef(sphere_center.x + r, sphere_center.z - r, sphere_center.y + r);
-	glColor4f(1.0, 1.0, 1.0, 1.0);
-	glutSolidSphere(r, 10, 10);
+	glutSolidSphere(r, 50, 50);
 	glPopMatrix();
 }
 
@@ -230,7 +277,6 @@ void draw_manifold() {
 	init_manifold();
 	auto sampled = TensorManipulation::transpose(manifold_pts);
 
-	glColor4f(1.0, 1.0, 1.0, 0.75);
 	for (int i = 1; i < MANIFOLD_SAMPLE_SIZE; i++) {
 		glBegin(GL_TRIANGLE_STRIP);
 		for (int j = 0; j < MANIFOLD_SAMPLE_SIZE; j++) {

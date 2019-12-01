@@ -8,8 +8,10 @@ const double LEARNING_RATE = 0.01;
 const double SPHERE_RADIUS = 0.25;
 const double ZOOM_STEP = 0.1;
 const double ZOOM_THRESHOLD = 5.0;
+const double MOVE_STEP = 0.25;
 
 void on_keyboard(unsigned char key, int x, int y);
+void on_special(int key, int x, int y);
 void on_reshape(int width, int height);
 void on_display(void);
 void on_timer(int);
