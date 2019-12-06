@@ -34,12 +34,23 @@ std::vector<std::vector<Point>> ManifoldBase::sample(
 }
 
 Point ManifoldBase::sample(double x, double y) {
+	/*
+	Sampling singleton point.
+	*/
+
 	auto sampled = ManifoldBase::sample({ x, x }, { y, y }, 1);
 
 	return sampled[0][0];
 }
 
 Point ManifoldBase::normal_vec(const Point& pt) {
+	/*
+	Calculating normal vector for the given point.
+	Normal vector is the vector orthogonal to the tangent plane.
+
+	(!) Normal vector is not normalized.
+	*/
+
 	double nx = -grad_x(pt);
 	double ny = -grad_y(pt);
 	double nz = -grad_z(pt);
@@ -48,6 +59,13 @@ Point ManifoldBase::normal_vec(const Point& pt) {
 }
 
 Point ManifoldBase::normal_vec(double x, double y, double z) {
+	/*
+	Calculating normal vector for the given point.
+	Normal vector is the vector orthogonal to the tangent plane.
+
+	(!) Normal vector is not normalized.
+	*/
+
 	Point pt = *new Point(x, y, z);
 
 	return normal_vec(pt);

@@ -55,7 +55,10 @@ std::ostream& operator<<(std::ostream& out, const Point& pt) {
 
 std::vector<double> LinearAlgebra::linspace(double a, double b, int n) {
 	/*
-	Equidistantly samples range [`a`, `b`] in `n` points.
+	Equidistantly samples range [a, b] in n points.
+
+	Throws:
+		-domain_error: Negative number of samples.
 	*/
 
 	if (n < 0)
@@ -78,6 +81,13 @@ std::vector<double> LinearAlgebra::linspace(double a, double b, int n) {
 }
 
 std::vector<double> LinearAlgebra::arange(double a, double b, double h) {
+	/*
+	Equidistantly samples range [a, b] using step h if it's possible.
+
+	Throws:
+		-domain_error: Negative step.
+	*/
+
 	if (h <= EPS)
 		throw std::domain_error("Step has to be strictly positive");
 
@@ -102,6 +112,13 @@ double LinearAlgebra::norm(const Point& pt) {
 }
 
 Point LinearAlgebra::normalize(const Point& pt) {
+	/*
+	Normalizing given point to unit norm.
+
+	Throws:
+		-domain_error: Zero point.
+	*/
+
 	double pt_norm = LinearAlgebra::norm(pt);
 	if (abs(pt_norm) <= EPS)
 		throw std::domain_error("Zero-vector can't be normalized");
@@ -112,6 +129,10 @@ Point LinearAlgebra::normalize(const Point& pt) {
 }
 
 int sign(double x) {
+	/*
+	Returns sign of a number.
+	*/
+
 	if (abs(x) <= EPS)
 		return 0;
 	else if (x > EPS)

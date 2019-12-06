@@ -10,7 +10,7 @@ EllipticParaboloid::EllipticParaboloid(double a = 1, double b = 1) {
 
 Point EllipticParaboloid::func(double x, double y) {
 	/*
-	f(x, y) = (x^2)/(a^2) + (y^2)/(b^2) - z
+	z = (x^2)/(a^2) + (y^2)/(b^2)
 	*/
 
 	double z = (x * x) / a2 + (y * y) / b2;
@@ -34,4 +34,12 @@ double EllipticParaboloid::grad_y(const Point& pt) {
 
 double EllipticParaboloid::grad_z(const Point& pt) {
 	return -1.0;
+}
+
+double EllipticParaboloid::get_a(void) {
+	return a;
+}
+
+double EllipticParaboloid::get_b(void) {
+	return b;
 }

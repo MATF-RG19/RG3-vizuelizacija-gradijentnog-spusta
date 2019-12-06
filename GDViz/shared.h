@@ -1,8 +1,12 @@
 #pragma once
 
-#include <iostream>
+/*
+Contains functions and constants that are shared across whole project.
+*/
+
+#include <iostream> // ostream
 #include <vector>
-#include <math.h>
+#include <math.h> // sqrt
 
 const double EPS = 1e-16;
 const double PI = 3.14159265359;
@@ -31,6 +35,11 @@ namespace LinearAlgebra {
 namespace TensorManipulation {
 	template<typename T>
 	std::vector<T> mat2vec(const std::vector<std::vector<T>>& mat) {
+		/*
+		Transforming matrix of shape (N, M) into array of shape (N * M).
+		Similar to Python's flatten().
+		*/
+
 		int n = static_cast<int>(mat.size());
 		std::vector<T> vec(n * n);
 
@@ -45,6 +54,10 @@ namespace TensorManipulation {
 
 	template<typename T>
 	std::vector<std::vector<T>> vec2mat(const std::vector<T> vec) {
+		/*
+		Transforming array of shape (N * M) into matrix of shape (N, M).
+		*/
+
 		int n = static_cast<int>(round(sqrt(vec.size())));
 		std::vector<std::vector<T>> mat(n, std::vector<T>(n));
 
@@ -59,6 +72,10 @@ namespace TensorManipulation {
 
 	template<typename T>
 	std::vector<std::vector<T>> transpose(const std::vector<std::vector<T>>& mat) {
+		/*
+		Transposing matrix of shape (N, M) into matrix of shape (M, N).
+		*/
+
 		int n = static_cast<int>(mat.size());
 		int m = static_cast<int>(mat[0].size());
 

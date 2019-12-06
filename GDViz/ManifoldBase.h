@@ -4,6 +4,13 @@
 
 #include "shared.h"
 
+/*
+Base class for manifolds.
+
+It's abstract class and its' primary usage is for polymorphism.
+Each specific manifold should inherit this class.
+*/
+
 class ManifoldBase {
 protected:
 	bool is_calculated = false; // manifold won't be sampled twice

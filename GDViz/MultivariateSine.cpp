@@ -34,3 +34,7 @@ double MultivariateSine::grad_y(const Point& pt) {
 double MultivariateSine::grad_z(const Point& pt) {
 	return static_cast<double>(sign(a)) * (-1.0);
 }
+
+double MultivariateSine::get_a(void) {
+	return a;
+}

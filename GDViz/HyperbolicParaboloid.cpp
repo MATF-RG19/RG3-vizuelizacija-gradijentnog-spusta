@@ -35,3 +35,11 @@ double HyperbolicParaboloid::grad_y(const Point& pt) {
 double HyperbolicParaboloid::grad_z(const Point& pt) {
 	return -1.0;
 }
+
+double HyperbolicParaboloid::get_a(void) {
+	return a;
+}
+
+double HyperbolicParaboloid::get_b(void) {
+	return b;
+}

@@ -11,12 +11,22 @@
 #include "main.h"
 #include "shared.h"
 
+/*
+-Upon starting the program, background will be black without any other object.
+By selecting proper manifold (see on_keyboard()), manifold be drawn.
+
+-Upon initializing animation (see on_keyboard()) little sphere will be shown.
+
+-Upon starting the animation, GD will start.
+*/
+
 // global variables
 bool initialized_animation, ongoing_animation;
 Point sphere_center; // center of sphere used for GD
-ManifoldBase* manifold = nullptr;
-std::vector<std::vector<Point>> manifold_pts; // sampled points of manifold; lazy update
-std::tuple<double, double, double> zoom_factor(1.0, 1.0, 1.0), move_factor(0.0, 0.0, 0.0);
+ManifoldBase* manifold = nullptr; // initially, manifold is not chosen
+std::vector<std::vector<Point>> manifold_pts; // sampled points of manifold; will be sampled only once
+std::tuple<double, double, double> zoom_factor(1.0, 1.0, 1.0), // changes on each mouse scroll event
+								   move_factor(0.0, 0.0, 0.0); // changes on each arrow press
 
 int main(int argc, char** argv) {
 	glutInit(&argc, argv);
@@ -46,7 +56,11 @@ int main(int argc, char** argv) {
 
 void on_keyboard(unsigned char key, int x, int y) {
 	/*
-	glutPostRedisplay() won't be called in case the same manifold is chosen twice.
+	Callback for basic interface events.
+	Different numerical values correspond to different manifolds (1, 2, ...).
+	Others alpha-numerical values correspond to starting/stopping animation etc.
+
+	(!) glutPostRedisplay() won't be called in case the same manifold is chosen twice.
 	*/
 
 	switch (key) {
@@ -113,6 +127,10 @@ void on_keyboard(unsigned char key, int x, int y) {
 }
 
 void on_special(int key, int x, int y) {
+	/*
+	Callback for handling arrow keys events.
+	*/
+
 	if (manifold) {
 		switch (key) {
 		case GLUT_KEY_LEFT:
@@ -208,6 +226,11 @@ void on_display(void) {
 }
 
 void on_timer(int id) {
+	/*
+	Callback for timer events.
+	Each timer event draws manifold after GD iteration.
+	*/
+
 	if (id != TIMER_ID)
 		return;
 
@@ -224,7 +247,8 @@ void on_timer(int id) {
 
 void draw_sphere(double r) {
 	/*
-	Draws little sphere in the given point. Used for GD visualization.
+	Draws little sphere in the given point.
+	Used for GD visualization.
 	*/
 
 	GLfloat ambient_material[] = { 0.25, 0.25, 0.25, 1 };
@@ -244,7 +268,12 @@ void draw_sphere(double r) {
 }
 
 void on_mouse(int button, int state, int x, int y) {
-	if (button == 3 || button == 4) { // scroll events
+	/*
+	Callback for mouse events.
+	Handling scroll events in particular.
+	*/
+
+	if (button == 3 || button == 4) {
 		std::get<0>(zoom_factor) += (button == 3 ? 1 : -1) * ZOOM_STEP;
 		std::get<1>(zoom_factor) += (button == 3 ? 1 : -1) * ZOOM_STEP;
 		std::get<2>(zoom_factor) += (button == 3 ? 1 : -1) * ZOOM_STEP;
@@ -262,7 +291,8 @@ void on_mouse(int button, int state, int x, int y) {
 
 void draw_manifold() {
 	/*
-	Draws 2D manifold in the 3D. It's drawn as stripes of triangles.
+	Draws 2D manifold in the 3D.
+	It's drawn as stripes of triangles.
 	*/
 
 	GLfloat ambient_material[] = { 0.5, 0.5, 0.5, 1 };
