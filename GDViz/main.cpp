@@ -262,7 +262,7 @@ void draw_sphere(double r) {
 
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
-	glTranslatef(sphere_center.x + r, sphere_center.z - r, sphere_center.y + r);
+	glTranslatef(sphere_center.x, sphere_center.z, sphere_center.y);
 	glutSolidSphere(r, 50, 50);
 	glPopMatrix();
 }
