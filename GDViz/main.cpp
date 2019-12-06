@@ -21,6 +21,7 @@ By selecting proper manifold (see on_keyboard()), manifold be drawn.
 */
 
 // global variables
+double LEARNING_RATE = 0.01; // LR
 bool initialized_animation, ongoing_animation;
 Point sphere_center; // center of sphere used for GD
 ManifoldBase* manifold = nullptr; // initially, manifold is not chosen
@@ -107,6 +108,8 @@ void on_keyboard(unsigned char key, int x, int y) {
 		break;
 	case 'I':
 	case 'i':
+		// initializing animation
+
 		sphere_center = manifold->sample(-2.5, 5.0);
 		initialized_animation = true;
 		ongoing_animation = false;
@@ -114,6 +117,8 @@ void on_keyboard(unsigned char key, int x, int y) {
 		break;
 	case 'G':
 	case 'g':
+		// starting animation
+
 		if (!ongoing_animation && initialized_animation) {
 			ongoing_animation = true;
 			glutTimerFunc(TIMER_INTERVAL, on_timer, TIMER_ID);
@@ -121,7 +126,25 @@ void on_keyboard(unsigned char key, int x, int y) {
 		break;
 	case 'S':
 	case 's':
+		// stopping animation
+
 		ongoing_animation = false;
+		break;
+	case 'E':
+	case 'e':
+		// increasing LR
+
+		LEARNING_RATE *= (1.0 + LR_STEP);
+		std::cerr << "LEARNING RATE: " << LEARNING_RATE << std::endl;
+		glutPostRedisplay();
+		break;
+	case 'Q':
+	case 'q':
+		// decreasing LR
+
+		LEARNING_RATE *= (1.0 - LR_STEP);
+		std::cerr << "LEARNING RATE: " << LEARNING_RATE << std::endl;
+		glutPostRedisplay();
 		break;
 	}
 }
@@ -219,7 +242,8 @@ void on_display(void) {
 
 	if (manifold) {
 		draw_manifold();
-		draw_sphere(SPHERE_RADIUS);
+		if (initialized_animation)
+			draw_sphere(SPHERE_RADIUS);
 	}
 
 	glutSwapBuffers();
@@ -262,7 +286,7 @@ void draw_sphere(double r) {
 
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
-	glTranslatef(sphere_center.x + r, sphere_center.z - r, sphere_center.y + r);
+	glTranslatef(sphere_center.x, sphere_center.z, sphere_center.y);
 	glutSolidSphere(r, 50, 50);
 	glPopMatrix();
 }
