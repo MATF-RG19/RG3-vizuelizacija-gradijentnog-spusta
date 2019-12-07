@@ -6,9 +6,8 @@ const int TIMER_ID = 0;
 const int TIMER_INTERVAL = 10; // how much does each iteration last
 const double LR_STEP = 0.25; // percentage of LR change
 const double SPHERE_RADIUS = 0.25; // size of GD sphere
-const double ZOOM_STEP = 0.1; // how much does zoom change per keypress
-const double ZOOM_THRESHOLD = 5.0; // zoom can't be larger than 5x or smaller than (1/5)x 
-const double MOVE_STEP = 0.25;
+const double SCALE_FACTOR = 1.1; // how much does zoom change per keypress
+const double TRANSLATE_FACTOR = 0.25;
 
 void on_keyboard(unsigned char key, int x, int y);
 void on_special(int key, int x, int y);
@@ -18,6 +17,7 @@ void on_timer(int);
 void on_mouse(int, int, int, int);
 void on_motion(int, int);
 
+void init_matrix(GLfloat*);
 void init_manifold(void);
 void draw_manifold(void);
 void draw_sphere(double);

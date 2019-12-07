@@ -22,18 +22,12 @@ By selecting proper manifold (see on_keyboard()), manifold be drawn.
 
 // global variables
 bool initialized_animation, ongoing_animation;
-double LEARNING_RATE = 0.01; // LR
-double mouse_x, mouse_y; // mouse coordinates
-Point sphere_center; // center of sphere used for GD
-GLfloat rot_matrix[16] = { 1, 0, 0, 0,
-						   0, 1, 0, 0,
-						   0, 0, 1, 0,
-						   0, 0, 0, 1 }; // rotation matrix for mouse motion
+double LEARNING_RATE = 0.01;
+Point sphere_center; // sphere used for GD
+GLfloat rotate_matrix[16], scale_matrix[16], translate_matrix[16];
 ManifoldBase* manifold = nullptr; // initially, manifold is not chosen
+std::pair<int, int> mouse_pos; // mouse coordinates
 std::vector<std::vector<Point>> manifold_pts; // sampled points of manifold; will be sampled only once
-std::tuple<double, double, double> zoom_factor(1.0, 1.0, 1.0), // changes on each mouse scroll event
-								   move_factor(0.0, 0.0, 0.0); // changes on each arrow press
-
 
 int main(int argc, char** argv) {
 	glutInit(&argc, argv);
@@ -50,8 +44,10 @@ int main(int argc, char** argv) {
 	glutMouseFunc(on_mouse);
 	glutMotionFunc(on_motion);
 
-	mouse_x = 0;
-	mouse_y = 0;
+	mouse_pos = std::make_pair(0, 0);
+	init_matrix(rotate_matrix);
+	init_matrix(scale_matrix);
+	init_matrix(translate_matrix);
 	glClearColor(0, 0, 0, 0);
 
 	glEnable(GL_LIGHTING);
@@ -119,7 +115,7 @@ void on_keyboard(unsigned char key, int x, int y) {
 	case 'i':
 		// initializing animation
 
-		sphere_center = manifold->sample(-2.5, 5.0);
+		sphere_center = manifold->sample(-2.5, 5.0); // TODO: hardcoded values
 		initialized_animation = true;
 		ongoing_animation = false;
 		glutPostRedisplay();
@@ -155,6 +151,18 @@ void on_keyboard(unsigned char key, int x, int y) {
 		std::cerr << "LEARNING RATE: " << LEARNING_RATE << std::endl;
 		glutPostRedisplay();
 		break;
+	case 'R':
+	case 'r':
+		// nullifying scale, translation and rotation matrices
+
+		mouse_pos = std::make_pair(0, 0);
+
+		init_matrix(rotate_matrix);
+		init_matrix(scale_matrix);
+		init_matrix(translate_matrix);
+		glutPostRedisplay();
+
+		break;
 	}
 }
 
@@ -164,38 +172,35 @@ void on_special(int key, int x, int y) {
 	*/
 
 	if (manifold) {
+		glMatrixMode(GL_MODELVIEW);
+		glPushMatrix();
+		glLoadIdentity();
+
 		switch (key) {
 		case GLUT_KEY_LEFT:
-			std::get<0>(move_factor) += MOVE_STEP;
-			if (!ongoing_animation)
-				glutPostRedisplay();
+			glTranslatef(TRANSLATE_FACTOR, 0, 0);
 			break;
 		case GLUT_KEY_RIGHT:
-			std::get<0>(move_factor) -= MOVE_STEP;
-			if (!ongoing_animation)
-				glutPostRedisplay();
+			glTranslatef(-TRANSLATE_FACTOR, 0, 0);
 			break;
 		case GLUT_KEY_UP:
-			std::get<2>(move_factor) += MOVE_STEP;
-			if (!ongoing_animation)
-				glutPostRedisplay();
+			glTranslatef(0, 0, TRANSLATE_FACTOR);
 			break;
 		case GLUT_KEY_DOWN:
-			std::get<2>(move_factor) -= MOVE_STEP;
-			if (!ongoing_animation)
-				glutPostRedisplay();
+			glTranslatef(0, 0, -TRANSLATE_FACTOR);
 			break;
 		case GLUT_KEY_PAGE_UP:
-			std::get<1>(move_factor) -= MOVE_STEP;
-			if (!ongoing_animation)
-				glutPostRedisplay();
+			glTranslatef(0, -TRANSLATE_FACTOR, 0);
 			break;
 		case GLUT_KEY_PAGE_DOWN:
-			std::get<1>(move_factor) += MOVE_STEP;
-			if (!ongoing_animation)
-				glutPostRedisplay();
+			glTranslatef(0, TRANSLATE_FACTOR, 0);
 			break;
 		}
+
+		glMultMatrixf(translate_matrix);
+		glGetFloatv(GL_MODELVIEW_MATRIX, translate_matrix);
+		glPopMatrix();
+		glutPostRedisplay();
 	}
 }
 
@@ -223,21 +228,13 @@ void on_display(void) {
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	gluLookAt(
-		static_cast<GLdouble>(6), static_cast<GLdouble>(18), static_cast<GLdouble>(12),
-		static_cast<GLdouble>(0), static_cast<GLdouble>(5), static_cast<GLdouble>(0),
+		static_cast<GLdouble>(6), static_cast<GLdouble>(18), static_cast<GLdouble>(12), // TODO: hardcoded values
+		static_cast<GLdouble>(0), static_cast<GLdouble>(5), static_cast<GLdouble>(0), // TODO: hardcoded values
 		static_cast<GLdouble>(0), static_cast<GLdouble>(1), static_cast<GLdouble>(0)
 	);
-	glMultMatrixf(rot_matrix);
-	glScalef(
-		static_cast<GLfloat>(std::get<0>(zoom_factor)),
-		static_cast<GLfloat>(std::get<1>(zoom_factor)),
-		static_cast<GLfloat>(std::get<2>(zoom_factor))
-	);
-	glTranslatef(
-		static_cast<GLfloat>(std::get<0>(move_factor)),
-		static_cast<GLfloat>(std::get<1>(move_factor)),
-		static_cast<GLfloat>(std::get<2>(move_factor))
-	);
+	glMultMatrixf(rotate_matrix); // rotation from mouse motion
+	glMultMatrixf(scale_matrix); // scale from mouse scroll
+	glMultMatrixf(translate_matrix); // translation from arrow keys
 
 	GLfloat light_position[] = { 0, 1, 0, 0};
 	GLfloat ambient_light[] = { 0.1, 0.1, 0.1, 1 };
@@ -279,72 +276,69 @@ void on_timer(int id) {
 		glutTimerFunc(TIMER_INTERVAL, on_timer, TIMER_ID);
 }
 
-void on_motion(int x, int y) {
-	int delta_x = x - mouse_x;
-	int delta_y = y - mouse_y;
-	mouse_x = x;
-	mouse_y = y;
-
-	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
-	glLoadIdentity();
-	GLfloat scale_factor = 180.0;
-	GLfloat angle_x = static_cast<GLfloat>(delta_x) / static_cast<GLfloat>(INIT_WINDOW_SIZE[0]);
-	GLfloat angle_y = static_cast<GLfloat>(delta_y) / static_cast<GLfloat>(INIT_WINDOW_SIZE[1]);
-	glRotatef(scale_factor * angle_x, 0, 1, 0);
-	glRotatef(scale_factor * angle_y, 1, 0, 0);
-	glMultMatrixf(rot_matrix);
-	glGetFloatv(GL_MODELVIEW_MATRIX, rot_matrix);
-	glPopMatrix();
-
-	glutPostRedisplay();
-}
-
 void on_mouse(int button, int state, int x, int y) {
 	/*
 	Callback for mouse events.
 	Handling scroll events and mouse rotations.
 	*/
 
-	mouse_x = x;
-	mouse_y = y;
-
-	if (button == 3 || button == 4) {
-		std::get<0>(zoom_factor) += (button == 3 ? 1 : -1) * ZOOM_STEP;
-		std::get<1>(zoom_factor) += (button == 3 ? 1 : -1) * ZOOM_STEP;
-		std::get<2>(zoom_factor) += (button == 3 ? 1 : -1) * ZOOM_STEP;
-
-		std::get<0>(zoom_factor) = std::clamp(std::get<0>(zoom_factor),
-			1.0 / ZOOM_THRESHOLD, ZOOM_THRESHOLD);
-		std::get<1>(zoom_factor) = std::clamp(std::get<1>(zoom_factor),
-			1.0 / ZOOM_THRESHOLD, ZOOM_THRESHOLD);
-		std::get<2>(zoom_factor) = std::clamp(std::get<2>(zoom_factor),
-			1.0 / ZOOM_THRESHOLD, ZOOM_THRESHOLD);
-
-		glutPostRedisplay();
-	}
-}
-
-void draw_sphere(double r) {
-	/*
-	Draws little sphere in the given point.
-	Used for GD visualization.
-	*/
-
-	GLfloat ambient_material[] = { 0.25, 0.25, 0.25, 1 };
-	GLfloat diffuse_material[] = { 0.75, 0.5, 0.25, 1 };
-	GLfloat specular_material[] = { 1, 0, 0, 1 };
-	GLfloat shininess = 10;
-	glMaterialfv(GL_FRONT, GL_AMBIENT, ambient_material);
-	glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse_material);
-	glMaterialfv(GL_FRONT, GL_SPECULAR, specular_material);
-	glMaterialf(GL_FRONT, GL_SHININESS, shininess);
+	mouse_pos = std::make_pair(x, y);
 
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
-	glTranslatef(sphere_center.x, sphere_center.z, sphere_center.y);
-	glutSolidSphere(r, 50, 50);
+	glLoadIdentity();
+
+	if (button == 3)
+		glScalef(SCALE_FACTOR, SCALE_FACTOR, SCALE_FACTOR);
+	else if (button == 4)
+		glScalef(1 / SCALE_FACTOR, 1 / SCALE_FACTOR, 1 / SCALE_FACTOR);
+
+	glMultMatrixf(scale_matrix);
+	glGetFloatv(GL_MODELVIEW_MATRIX, scale_matrix);
 	glPopMatrix();
+	glutPostRedisplay();
+}
+
+void on_motion(int x, int y) {
+	int delta_x = x - mouse_pos.first;
+	int delta_y = y - mouse_pos.second;
+	mouse_pos = std::make_pair(x, y);
+
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glLoadIdentity();
+	GLfloat angle_factor = 180.0;
+	GLfloat angle_x = static_cast<GLfloat>(delta_x) / INIT_WINDOW_SIZE[0];
+	GLfloat angle_y = static_cast<GLfloat>(delta_y) / INIT_WINDOW_SIZE[1];
+	glRotatef(angle_factor * angle_x, 0, 1, 0);
+	glRotatef(angle_factor * angle_y, 1, 0, 0);
+	glMultMatrixf(rotate_matrix);
+	glGetFloatv(GL_MODELVIEW_MATRIX, rotate_matrix);
+	glPopMatrix();
+
+	glutPostRedisplay();
+}
+
+void init_matrix(GLfloat* matrix) {
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glLoadIdentity();
+	glGetFloatv(GL_MODELVIEW_MATRIX, matrix);
+	glPopMatrix();
+}
+
+void init_manifold(void) {
+	if (!manifold->get_lazy_flag()) {
+		std::pair<double, double> x_range = { -10.0, 10.0 }; // TODO: hardcoded values
+		std::pair<double, double> y_range = { -10.0, 10.0 }; // TODO: hardcoded values
+		manifold_pts = manifold->sample(
+			x_range,
+			y_range,
+			MANIFOLD_SAMPLE_SIZE
+		);
+	}
+
+	manifold->set_lazy_flag(true);
 }
 
 void draw_manifold() {
@@ -380,16 +374,24 @@ void draw_manifold() {
 	}
 }
 
-void init_manifold(void) {
-	if (!manifold->get_lazy_flag()) {
-		std::pair<double, double> x_range = { -10.0, 10.0 }; // TODO: hardcoded values
-		std::pair<double, double> y_range = { -10.0, 10.0 }; // TODO: hardcoded values
-		manifold_pts = manifold->sample(
-			x_range,
-			y_range,
-			MANIFOLD_SAMPLE_SIZE
-		);
-	}
+void draw_sphere(double r) {
+	/*
+	Draws little sphere in the given point.
+	Used for GD visualization.
+	*/
 
-	manifold->set_lazy_flag(true);
+	GLfloat ambient_material[] = { 0.25, 0.25, 0.25, 1 };
+	GLfloat diffuse_material[] = { 0.75, 0.5, 0.25, 1 };
+	GLfloat specular_material[] = { 1, 0, 0, 1 };
+	GLfloat shininess = 10;
+	glMaterialfv(GL_FRONT, GL_AMBIENT, ambient_material);
+	glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse_material);
+	glMaterialfv(GL_FRONT, GL_SPECULAR, specular_material);
+	glMaterialf(GL_FRONT, GL_SHININESS, shininess);
+
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glTranslatef(sphere_center.x, sphere_center.z, sphere_center.y);
+	glutSolidSphere(r, 50, 50);
+	glPopMatrix();
 }
