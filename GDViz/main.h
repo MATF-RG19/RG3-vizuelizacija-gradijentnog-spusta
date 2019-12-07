@@ -16,6 +16,7 @@ void on_reshape(int width, int height);
 void on_display(void);
 void on_timer(int);
 void on_mouse(int, int, int, int);
+void on_motion(int, int);
 
 void init_manifold(void);
 void draw_manifold(void);
