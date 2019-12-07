@@ -24,22 +24,24 @@ Point::Point(double x, double y, double z, double nx, double ny, double nz) {
 }
 
 Point Point::operator*(const double lmbd) const {
-	double _x = lmbd * this->x;
-	double _y = lmbd * this->y;
-	double _z = lmbd * this->z;
+	Point ret;
+	ret.x = lmbd * this->x;
+	ret.y = lmbd * this->y;
+	ret.z = lmbd * this->z;
 
-	return *new Point(_x, _y, _z, this->nx, this->ny, this->nz);
+	return ret;
 }
 
 Point Point::operator+(const Point& pt) const {
-	double _x = this->x + pt.x;
-	double _y = this->y + pt.y;
-	double _z = this->z + pt.z;
-	double _nx = this->nx + pt.nx;
-	double _ny = this->ny + pt.ny;
-	double _nz = this->nz + pt.nz;
+	Point ret;
+	ret.x = this->x + pt.x;
+	ret.y = this->y + pt.y;
+	ret.z = this->z + pt.z;
+	ret.nx = this->nx + pt.nx;
+	ret.ny = this->ny + pt.ny;
+	ret.nz = this->nz + pt.nz;
 
-	return *new Point(_x, _y, _z, _nx, _ny, _nz);
+	return ret;
 }
 
 Point Point::operator-(const Point& pt) const {

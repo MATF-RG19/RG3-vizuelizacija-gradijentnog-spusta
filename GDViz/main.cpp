@@ -24,17 +24,20 @@ By selecting proper manifold (see on_keyboard()), manifold be drawn.
 bool initialized_animation, ongoing_animation;
 double LEARNING_RATE = 0.01;
 Point sphere_center; // sphere used for GD
+Point barycenter; // barycenter of sampled points
 GLfloat rotate_matrix[16], scale_matrix[16], translate_matrix[16];
 ManifoldBase* manifold = nullptr; // initially, manifold is not chosen
 std::pair<int, int> mouse_pos; // mouse coordinates
+std::pair<int, int> window_size = { 800, 800 }; // window size; updates on reshape
 std::vector<std::vector<Point>> manifold_pts; // sampled points of manifold; will be sampled only once
+
 
 int main(int argc, char** argv) {
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
 
-	glutInitWindowSize(INIT_WINDOW_SIZE[0], INIT_WINDOW_SIZE[1]);
-	glutInitWindowPosition(INIT_WINDOW_POSITION[0], INIT_WINDOW_POSITION[1]);
+	glutInitWindowSize(window_size.first, window_size.second);
+	glutInitWindowPosition(WINDOW_POS.first, WINDOW_POS.second);
 	glutCreateWindow(argv[0]);
 
 	glutKeyboardFunc(on_keyboard);
@@ -69,42 +72,51 @@ void on_keyboard(unsigned char key, int x, int y) {
 	(!) glutPostRedisplay() won't be called in case the same manifold is chosen twice.
 	*/
 
+	double dir_x = distribution(rnd_gen);
+	double dir_y = distribution(rnd_gen);
+
 	switch (key) {
 	case 27:
 		exit(0);
 	case '1':
-		if (manifold_type != ManifoldType::elliptic_paraboloid) {
+		if (!manifold || manifold_type != ManifoldType::elliptic_paraboloid) {
 			manifold_type = ManifoldType::elliptic_paraboloid;
 			if (manifold) {
 				delete(manifold);
 				manifold = nullptr;
 			}
+			ongoing_animation = false;
+			initialized_animation = false;
 
 			manifold_pts.clear();
-			manifold = dynamic_cast<ManifoldBase*>(new EllipticParaboloid(1.5, 1.5));
+			manifold = dynamic_cast<ManifoldBase*>(new EllipticParaboloid(3.5, 3.5));
 			glutPostRedisplay();
 		}
 		break;
 	case '2':
-		if (manifold_type != ManifoldType::hyperbolic_paraboloid) {
+		if (!manifold || manifold_type != ManifoldType::hyperbolic_paraboloid) {
 			manifold_type = ManifoldType::hyperbolic_paraboloid;
 			if (manifold) {
 				delete(manifold);
 				manifold = nullptr;
 			}
+			ongoing_animation = false;
+			initialized_animation = false;
 
 			manifold_pts.clear();
-			manifold = dynamic_cast<ManifoldBase*>(new HyperbolicParaboloid(1.5, 1.5));
+			manifold = dynamic_cast<ManifoldBase*>(new HyperbolicParaboloid(3.5, 3.5));
 			glutPostRedisplay();
 		}
 		break;
 	case '3':
-		if (manifold_type != ManifoldType::multivariate_sine) {
+		if (!manifold || manifold_type != ManifoldType::multivariate_sine) {
 			manifold_type = ManifoldType::multivariate_sine;
 			if (manifold) {
 				delete(manifold);
 				manifold = nullptr;
 			}
+			ongoing_animation = false;
+			initialized_animation = false;
 
 			manifold_pts.clear();
 			manifold = dynamic_cast<ManifoldBase*>(new MultivariateSine(1.0));
@@ -115,7 +127,7 @@ void on_keyboard(unsigned char key, int x, int y) {
 	case 'i':
 		// initializing animation
 
-		sphere_center = manifold->sample(-2.5, 5.0); // TODO: hardcoded values
+		sphere_center = manifold->sample(X_ABSMAX * dir_x, Y_ABSMAX * dir_y); // random point on manifold
 		initialized_animation = true;
 		ongoing_animation = false;
 		glutPostRedisplay();
@@ -205,6 +217,8 @@ void on_special(int key, int x, int y) {
 }
 
 void on_reshape(int width, int height) {
+	window_size = std::make_pair(width, height);
+
 	glViewport(
 		static_cast<GLint>(0),
 		static_cast<GLint>(0),
@@ -227,11 +241,16 @@ void on_display(void) {
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	gluLookAt(
-		static_cast<GLdouble>(6), static_cast<GLdouble>(18), static_cast<GLdouble>(12), // TODO: hardcoded values
-		static_cast<GLdouble>(0), static_cast<GLdouble>(5), static_cast<GLdouble>(0), // TODO: hardcoded values
-		static_cast<GLdouble>(0), static_cast<GLdouble>(1), static_cast<GLdouble>(0)
-	);
+	if (manifold) {
+
+	}
+	if (manifold) {
+		gluLookAt(
+			static_cast<GLdouble>(barycenter.x) + 20, static_cast<GLdouble>(barycenter.z) + 30, static_cast<GLdouble>(barycenter.y) + 20,
+			static_cast<GLdouble>(barycenter.x), static_cast<GLdouble>(barycenter.z), static_cast<GLdouble>(barycenter.y),
+			static_cast<GLdouble>(0), static_cast<GLdouble>(1), static_cast<GLdouble>(0)
+		);
+	}
 	glMultMatrixf(rotate_matrix); // rotation from mouse motion
 	glMultMatrixf(scale_matrix); // scale from mouse scroll
 	glMultMatrixf(translate_matrix); // translation from arrow keys
@@ -267,8 +286,7 @@ void on_timer(int id) {
 
 	glutPostRedisplay();
 
-	sphere_center.x -= LEARNING_RATE * sphere_center.x;
-	sphere_center.y -= LEARNING_RATE * sphere_center.y;
+	sphere_center = sphere_center - sphere_center * LEARNING_RATE;
 	sphere_center = manifold->sample(sphere_center.x, sphere_center.y);
 	std::cerr << "Sphere center: " << sphere_center << std::endl;
 
@@ -308,8 +326,8 @@ void on_motion(int x, int y) {
 	glPushMatrix();
 	glLoadIdentity();
 	GLfloat angle_factor = 180.0;
-	GLfloat angle_x = static_cast<GLfloat>(delta_x) / INIT_WINDOW_SIZE[0];
-	GLfloat angle_y = static_cast<GLfloat>(delta_y) / INIT_WINDOW_SIZE[1];
+	GLfloat angle_x = static_cast<GLfloat>(delta_x) / window_size.first;
+	GLfloat angle_y = static_cast<GLfloat>(delta_y) / window_size.second;
 	glRotatef(angle_factor * angle_x, 0, 1, 0);
 	glRotatef(angle_factor * angle_y, 1, 0, 0);
 	glMultMatrixf(rotate_matrix);
@@ -329,13 +347,14 @@ void init_matrix(GLfloat* matrix) {
 
 void init_manifold(void) {
 	if (!manifold->get_lazy_flag()) {
-		std::pair<double, double> x_range = { -10.0, 10.0 }; // TODO: hardcoded values
-		std::pair<double, double> y_range = { -10.0, 10.0 }; // TODO: hardcoded values
+		std::pair<double, double> x_range = { -X_ABSMAX, X_ABSMAX }; // TODO: hardcoded values
+		std::pair<double, double> y_range = { -Y_ABSMAX, Y_ABSMAX }; // TODO: hardcoded values
 		manifold_pts = manifold->sample(
 			x_range,
 			y_range,
 			MANIFOLD_SAMPLE_SIZE
 		);
+		barycenter = calc_barycenter(TensorManipulation::mat2vec(manifold_pts));
 	}
 
 	manifold->set_lazy_flag(true);
@@ -394,4 +413,13 @@ void draw_sphere(double r) {
 	glTranslatef(sphere_center.x, sphere_center.z, sphere_center.y);
 	glutSolidSphere(r, 50, 50);
 	glPopMatrix();
+}
+
+Point calc_barycenter(const std::vector<Point>& pts) {
+	Point barycenter;
+	for (const Point& pt : pts)
+		barycenter = barycenter + pt;
+	barycenter = barycenter * (1.0 / static_cast<double>(pts.size()));
+
+	return barycenter;
 }
