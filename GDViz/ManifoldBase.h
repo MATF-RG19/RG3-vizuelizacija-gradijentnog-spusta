@@ -29,6 +29,7 @@ public:
 		const std::pair<double, double>&,
 		int);
 	Point sample(double, double);
+	Point grad(const Point&);
 
 	void set_lazy_flag(bool);
 	bool get_lazy_flag(void);

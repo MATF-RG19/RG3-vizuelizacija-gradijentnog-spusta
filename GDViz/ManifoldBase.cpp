@@ -43,6 +43,12 @@ Point ManifoldBase::sample(double x, double y) {
 	return sampled[0][0];
 }
 
+Point ManifoldBase::grad(const Point& pt) {
+	Point nabla(grad_x(pt), grad_y(pt), grad_z(pt));
+
+	return nabla;
+}
+
 Point ManifoldBase::normal_vec(const Point& pt) {
 	/*
 	Calculating normal vector for the given point.

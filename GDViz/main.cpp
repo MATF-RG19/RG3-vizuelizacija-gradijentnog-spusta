@@ -290,7 +290,7 @@ void on_timer(int id) {
 
 	glutPostRedisplay();
 
-	sphere_center = sphere_center - sphere_center * LEARNING_RATE;
+	sphere_center = sphere_center - manifold->grad(sphere_center) * LEARNING_RATE;
 	sphere_center = manifold->sample(sphere_center.x, sphere_center.y);
 	std::cerr << "Sphere center: " << sphere_center << std::endl;
 
