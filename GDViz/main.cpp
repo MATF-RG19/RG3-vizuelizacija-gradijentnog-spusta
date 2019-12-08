@@ -5,6 +5,7 @@
 #include <algorithm>
 
 #include <GL/glut.h>
+#include "CubicProduct.h"
 #include "EllipticParaboloid.h"
 #include "HyperbolicParaboloid.h"
 #include "MultivariateSine.h"
@@ -20,15 +21,16 @@ By selecting proper manifold (see on_keyboard()), manifold be drawn.
 -Upon starting the animation, GD will start.
 */
 
-// global variables
 bool initialized_animation, ongoing_animation;
 double LEARNING_RATE = 0.01;
+GLfloat rotate_matrix[16], scale_matrix[16], translate_matrix[16];
+
 Point sphere_center; // sphere used for GD
 Point barycenter; // barycenter of sampled points
-GLfloat rotate_matrix[16], scale_matrix[16], translate_matrix[16];
+
 ManifoldBase* manifold = nullptr; // initially, manifold is not chosen
 std::pair<int, int> mouse_pos; // mouse coordinates
-std::pair<int, int> window_size = { 800, 800 }; // window size; updates on reshape
+std::pair<int, int> window_size = { 1000, 1000 }; // window size; updates on reshape
 std::vector<std::vector<Point>> manifold_pts; // sampled points of manifold; will be sampled only once
 
 
@@ -90,6 +92,7 @@ void on_keyboard(unsigned char key, int x, int y) {
 
 			manifold_pts.clear();
 			manifold = dynamic_cast<ManifoldBase*>(new EllipticParaboloid(3.5, 3.5));
+			init_manifold();
 			glutPostRedisplay();
 		}
 		break;
@@ -105,6 +108,7 @@ void on_keyboard(unsigned char key, int x, int y) {
 
 			manifold_pts.clear();
 			manifold = dynamic_cast<ManifoldBase*>(new HyperbolicParaboloid(3.5, 3.5));
+			init_manifold();
 			glutPostRedisplay();
 		}
 		break;
@@ -120,6 +124,23 @@ void on_keyboard(unsigned char key, int x, int y) {
 
 			manifold_pts.clear();
 			manifold = dynamic_cast<ManifoldBase*>(new MultivariateSine(1.0));
+			init_manifold();
+			glutPostRedisplay();
+		}
+		break;
+	case '4':
+		if (!manifold || manifold_type != ManifoldType::cubic_product) {
+			manifold_type = ManifoldType::cubic_product;
+			if (manifold) {
+				delete(manifold);
+				manifold = nullptr;
+			}
+			ongoing_animation = false;
+			initialized_animation = false;
+
+			manifold_pts.clear();
+			manifold = dynamic_cast<ManifoldBase*>(new CubicProduct(1e-4));
+			init_manifold();
 			glutPostRedisplay();
 		}
 		break;
@@ -290,9 +311,12 @@ void on_timer(int id) {
 
 	glutPostRedisplay();
 
-	sphere_center = sphere_center - manifold->grad(sphere_center) * LEARNING_RATE;
-	sphere_center = manifold->sample(sphere_center.x, sphere_center.y);
 	std::cerr << "Sphere center: " << sphere_center << std::endl;
+	std::cerr << "Gradient: " << manifold->grad(sphere_center) << std::endl;
+	sphere_center = sphere_center - manifold->grad(sphere_center) * LEARNING_RATE;
+	sphere_center.x = std::clamp(sphere_center.x, -X_ABSMAX, X_ABSMAX); // ensure to fit the window
+	sphere_center.y = std::clamp(sphere_center.y, -Y_ABSMAX, Y_ABSMAX); // ensure to fit the window
+	sphere_center = manifold->sample(sphere_center.x, sphere_center.y);
 
 	if (ongoing_animation)
 		glutTimerFunc(TIMER_INTERVAL, on_timer, TIMER_ID);
@@ -379,7 +403,6 @@ void draw_manifold() {
 	glMaterialfv(GL_FRONT, GL_SPECULAR, specular_material);
 	glMaterialf(GL_FRONT, GL_SHININESS, shininess);
 
-	init_manifold();
 	auto sampled = TensorManipulation::transpose(manifold_pts);
 
 	for (int i = 1; i < MANIFOLD_SAMPLE_SIZE; i++) {

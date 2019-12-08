@@ -5,7 +5,7 @@
 /*
 Hyperbolic paraboloid in form z = (x^2)/(a^2) - (y^2)/(b^2).
 
-(!) Function with saddle point. Divergence behavior expected.
+(!) Function with saddle point. Undefined behavior expected.
 */
 
 class HyperbolicParaboloid :
