@@ -5,6 +5,10 @@
 #include "shared.h"
 
 // constants
+<<<<<<< HEAD
+=======
+const std::pair<int, int> WINDOW_POS = { 0, 0 };
+>>>>>>> 251894278892f576fbe2c4a5436908177ec27ba7
 const int MANIFOLD_SAMPLE_SIZE = 500; // how many points to sample from manifold
 const int TIMER_ID = 0;
 const int TIMER_INTERVAL = 10; // how much does each iteration last

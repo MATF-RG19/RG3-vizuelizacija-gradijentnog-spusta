@@ -315,7 +315,11 @@ void on_timer(int id) {
 	std::cerr << "Gradient: " << manifold->grad(sphere_center) << std::endl;
 	sphere_center = sphere_center - manifold->grad(sphere_center) * LEARNING_RATE;
 	sphere_center.x = std::clamp(sphere_center.x, -X_ABSMAX, X_ABSMAX); // ensure to fit the window
+<<<<<<< HEAD
 	sphere_center.y = std::clamp(sphere_center.y, -Y_ABSMAX, Y_ABSMAX); // ensure to fit the window
+=======
+	sphere_center.y = std::clamp(sphere_center.x, -Y_ABSMAX, Y_ABSMAX); // ensure to fit the window
+>>>>>>> 251894278892f576fbe2c4a5436908177ec27ba7
 	sphere_center = manifold->sample(sphere_center.x, sphere_center.y);
 
 	if (ongoing_animation)
