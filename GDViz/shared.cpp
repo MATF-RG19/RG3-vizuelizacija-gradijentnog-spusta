@@ -125,7 +125,7 @@ Point LinearAlgebra::normalize(const Point& pt) {
 	if (abs(pt_norm) <= EPS)
 		throw std::domain_error("Zero-vector can't be normalized");
 
-	Point ret = *new Point(pt.x / pt_norm, pt.y / pt_norm, pt.z / pt_norm);
+	Point ret(pt.x / pt_norm, pt.y / pt_norm, pt.z / pt_norm);
 
 	return ret;
 }

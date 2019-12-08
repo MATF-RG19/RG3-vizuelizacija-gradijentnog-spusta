@@ -14,7 +14,7 @@ Point EllipticParaboloid::func(double x, double y) {
 	*/
 
 	double z = (x * x) / a2 + (y * y) / b2;
-	Point pt = *new Point(x, y, z);
+	Point pt(x, y, z);
 
 	Point pt_normal = normal_vec(x, y, z);
 	pt.nx = pt_normal.x;

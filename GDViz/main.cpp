@@ -242,13 +242,17 @@ void on_display(void) {
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	if (manifold) {
+		GLdouble center_x = static_cast<GLdouble>(barycenter.x);
+		GLdouble center_y = static_cast<GLdouble>(barycenter.z);
+		GLdouble center_z = static_cast<GLdouble>(barycenter.y);
+		GLdouble eye_x = center_x + 20;
+		GLdouble eye_y = center_y + 30;
+		GLdouble eye_z = center_z + 20;
 
-	}
-	if (manifold) {
 		gluLookAt(
-			static_cast<GLdouble>(barycenter.x) + 20, static_cast<GLdouble>(barycenter.z) + 30, static_cast<GLdouble>(barycenter.y) + 20,
-			static_cast<GLdouble>(barycenter.x), static_cast<GLdouble>(barycenter.z), static_cast<GLdouble>(barycenter.y),
-			static_cast<GLdouble>(0), static_cast<GLdouble>(1), static_cast<GLdouble>(0)
+			eye_x, eye_y, eye_z,
+			center_x, center_y, center_z,
+			0, 1, 0
 		);
 	}
 	glMultMatrixf(rotate_matrix); // rotation from mouse motion

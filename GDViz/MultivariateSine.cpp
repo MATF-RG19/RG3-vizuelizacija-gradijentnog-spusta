@@ -13,7 +13,7 @@ Point MultivariateSine::func(double x, double y) {
 	*/
 
 	double z = a * sin(x * y);
-	Point pt = *new Point(x, y, z);
+	Point pt(x, y, z);
 
 	Point pt_normal = normal_vec(x, y, z);
 	pt.nx = pt_normal.x;

@@ -55,7 +55,7 @@ Point ManifoldBase::normal_vec(const Point& pt) {
 	double ny = -grad_y(pt);
 	double nz = -grad_z(pt);
 
-	return *new Point(nx, ny, nz);
+	return Point(nx, ny, nz);
 }
 
 Point ManifoldBase::normal_vec(double x, double y, double z) {
@@ -66,13 +66,13 @@ Point ManifoldBase::normal_vec(double x, double y, double z) {
 	(!) Normal vector is not normalized.
 	*/
 
-	Point pt = *new Point(x, y, z);
+	Point pt(x, y, z);
 
 	return normal_vec(pt);
 }
 
 Point ManifoldBase::func(double x, double y) {
-	return *new Point();
+	return Point();
 }
 
 double ManifoldBase::grad_x(const Point& pt) {
