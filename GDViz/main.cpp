@@ -20,15 +20,16 @@ By selecting proper manifold (see on_keyboard()), manifold be drawn.
 -Upon starting the animation, GD will start.
 */
 
-// global variables
 bool initialized_animation, ongoing_animation;
 double LEARNING_RATE = 0.01;
+GLfloat rotate_matrix[16], scale_matrix[16], translate_matrix[16];
+
 Point sphere_center; // sphere used for GD
 Point barycenter; // barycenter of sampled points
-GLfloat rotate_matrix[16], scale_matrix[16], translate_matrix[16];
+
 ManifoldBase* manifold = nullptr; // initially, manifold is not chosen
 std::pair<int, int> mouse_pos; // mouse coordinates
-std::pair<int, int> window_size = { 800, 800 }; // window size; updates on reshape
+std::pair<int, int> window_size = { 1000, 1000 }; // window size; updates on reshape
 std::vector<std::vector<Point>> manifold_pts; // sampled points of manifold; will be sampled only once
 
 
@@ -291,6 +292,8 @@ void on_timer(int id) {
 	glutPostRedisplay();
 
 	sphere_center = sphere_center - manifold->grad(sphere_center) * LEARNING_RATE;
+	sphere_center.x = std::clamp(sphere_center.x, -X_ABSMAX, X_ABSMAX); // ensure to fit the window
+	sphere_center.y = std::clamp(sphere_center.x, -Y_ABSMAX, Y_ABSMAX); // ensure to fit the window
 	sphere_center = manifold->sample(sphere_center.x, sphere_center.y);
 	std::cerr << "Sphere center: " << sphere_center << std::endl;
 
