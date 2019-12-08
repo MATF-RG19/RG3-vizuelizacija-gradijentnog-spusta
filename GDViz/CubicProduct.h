@@ -4,19 +4,19 @@
 #include "shared.h"
 
 /*
-Multivariate sine function in form z = a * sin(x * y).
+Cubic product function in form z = a * (xy) ^ 3.
 
-(!) Multimodal function that is not convex with a lot of local minima.
+(!) Non-convex function with vanishing gradient at (0, 0).
 */
 
-class MultivariateSine :
+class CubicProduct :
 	public ManifoldBase {
 
 private:
 	double a;
 
 public:
-	MultivariateSine(double);
+	CubicProduct(double);
 
 	Point func(double, double);
 	double grad_x(const Point&);

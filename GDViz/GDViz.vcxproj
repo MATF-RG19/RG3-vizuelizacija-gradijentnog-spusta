@@ -127,6 +127,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CubicProduct.cpp" />
     <ClCompile Include="EllipticParaboloid.cpp" />
     <ClCompile Include="HyperbolicParaboloid.cpp" />
     <ClCompile Include="main.cpp" />
@@ -135,6 +136,7 @@
     <ClCompile Include="shared.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CubicProduct.h" />
     <ClInclude Include="EllipticParaboloid.h" />
     <ClInclude Include="HyperbolicParaboloid.h" />
     <ClInclude Include="main.h" />

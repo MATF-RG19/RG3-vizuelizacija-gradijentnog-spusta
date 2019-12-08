@@ -5,7 +5,6 @@
 #include "shared.h"
 
 // constants
-const std::pair<int, int> WINDOW_POS = { 100, 100 };
 const int MANIFOLD_SAMPLE_SIZE = 500; // how many points to sample from manifold
 const int TIMER_ID = 0;
 const int TIMER_INTERVAL = 10; // how much does each iteration last
@@ -15,6 +14,8 @@ const double SCALE_FACTOR = 1.1; // how much does zoom change per keypress
 const double TRANSLATE_FACTOR = 0.25;
 const double X_ABSMAX = 10;
 const double Y_ABSMAX = 10;
+
+const std::pair<int, int> WINDOW_POS = { 0, 0 };
 std::default_random_engine rnd_gen;
 std::uniform_real_distribution<double> distribution(-1.0, 1.0);
 
@@ -37,5 +38,6 @@ enum class ManifoldType {
 	All possible types of manifolds.
 	*/
 
-	elliptic_paraboloid, hyperbolic_paraboloid, multivariate_sine
+	elliptic_paraboloid, hyperbolic_paraboloid,
+	multivariate_sine, cubic_product
 } manifold_type;
