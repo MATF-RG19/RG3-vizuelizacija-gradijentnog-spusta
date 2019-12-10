@@ -6,6 +6,7 @@
 #include "shared.h"
 
 // constants
+const unsigned char TEXT_COLOR[] = { 255, 255, 255 };
 const int MANIFOLD_SAMPLE_SIZE = 500; // how many points to sample from manifold
 const int TIMER_ID = 0;
 const int TIMER_INTERVAL = 10; // how much does each iteration last
@@ -15,9 +16,10 @@ const double SCALE_FACTOR = 1.1; // how much does zoom change per keypress
 const double TRANSLATE_FACTOR = 0.25;
 const double X_ABSMAX = 10;
 const double Y_ABSMAX = 10;
-const double SPLIT_SCREEN_RATIO = 0.6;
-const double FONT_SPACING = 30;
+const double SPLIT_SCREEN_RATIO = 0.6; // ratio of viewports' widths
+const double TEXT_SPACING = 30; // spacing between two rows of text
 const double FONT_SCALE = 1e-1;
+const double TEXT_WIDTH = 1.0;
 
 const std::pair<int, int> WINDOW_POS = { 0, 0 };
 std::default_random_engine rnd_gen;

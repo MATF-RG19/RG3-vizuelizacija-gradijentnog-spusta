@@ -387,13 +387,10 @@ void show_log() {
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	gluOrtho2D(0, window_size.first * (1 - SPLIT_SCREEN_RATIO), 0, window_size.second);
-	glTranslatef(0, window_size.second - 50, 0);
+	glTranslatef(0, window_size.second - TEXT_SPACING, 0);
 	glScalef(FONT_SCALE, FONT_SCALE, 1);
 
 	std::vector<std::string> msgs;
-
-	glLineWidth(1);
-	glColor3f(1.0, 1.0, 1.0);
 	if (manifold) {
 		std::string msg = "Selected manifold: ";
 		switch (manifold_type){
@@ -443,6 +440,9 @@ void show_log() {
 }
 
 void show_text(const std::vector<std::string>& msgs) {
+	glLineWidth(static_cast<GLfloat>(1));
+	glColor3ubv(TEXT_COLOR);
+
 	for (const std::string msg : msgs) {
 		glPushMatrix();
 		for (const char c : msg) {
@@ -450,7 +450,7 @@ void show_text(const std::vector<std::string>& msgs) {
 		}
 		glPopMatrix();
 		glScalef(1.0 / FONT_SCALE, 1.0 / FONT_SCALE, 1);
-		glTranslatef(0, -FONT_SPACING, 0);
+		glTranslatef(0, -TEXT_SPACING, 0);
 		glScalef(FONT_SCALE, FONT_SCALE, 1);
 	}
 }
@@ -465,8 +465,8 @@ void init_matrix(GLfloat* matrix) {
 
 void init_manifold(void) {
 	if (!manifold->get_lazy_flag()) {
-		std::pair<double, double> x_range = { -X_ABSMAX, X_ABSMAX }; // TODO: hardcoded values
-		std::pair<double, double> y_range = { -Y_ABSMAX, Y_ABSMAX }; // TODO: hardcoded values
+		std::pair<double, double> x_range = { -X_ABSMAX, X_ABSMAX };
+		std::pair<double, double> y_range = { -Y_ABSMAX, Y_ABSMAX };
 		manifold_pts = manifold->sample(
 			x_range,
 			y_range,
