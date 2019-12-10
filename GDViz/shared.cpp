@@ -110,7 +110,7 @@ std::vector<double> LinearAlgebra::arange(double a, double b, double h) {
 }
 
 double LinearAlgebra::norm(const Point& pt) {
-	return sqrt(pt.x * pt.x + pt.y * pt.y + pt.z + pt.z);
+	return sqrt(pt.x * pt.x + pt.y * pt.y + pt.z * pt.z);
 }
 
 Point LinearAlgebra::normalize(const Point& pt) {

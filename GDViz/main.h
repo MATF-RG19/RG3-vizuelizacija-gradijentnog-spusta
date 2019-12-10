@@ -1,5 +1,6 @@
 #include <utility>
 #include <vector>
+#include <string>
 #include <random>
 
 #include "shared.h"
@@ -14,6 +15,9 @@ const double SCALE_FACTOR = 1.1; // how much does zoom change per keypress
 const double TRANSLATE_FACTOR = 0.25;
 const double X_ABSMAX = 10;
 const double Y_ABSMAX = 10;
+const double SPLIT_SCREEN_RATIO = 0.6;
+const double FONT_SPACING = 30;
+const double FONT_SCALE = 1e-1;
 
 const std::pair<int, int> WINDOW_POS = { 0, 0 };
 std::default_random_engine rnd_gen;
@@ -26,6 +30,10 @@ void on_display(void);
 void on_timer(int);
 void on_mouse(int, int, int, int);
 void on_motion(int, int);
+
+void show_visualization(void);
+void show_log(void);
+void show_text(const std::vector<std::string>&);
 
 void init_matrix(GLfloat*);
 void init_manifold(void);

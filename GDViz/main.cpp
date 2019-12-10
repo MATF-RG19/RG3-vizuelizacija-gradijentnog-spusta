@@ -30,7 +30,10 @@ Point barycenter; // barycenter of sampled points
 
 ManifoldBase* manifold = nullptr; // initially, manifold is not chosen
 std::pair<int, int> mouse_pos; // mouse coordinates
-std::pair<int, int> window_size = { 1000, 1000 }; // window size; updates on reshape
+std::pair<int, int> window_size = {
+	static_cast<int>(800.0 / SPLIT_SCREEN_RATIO),
+	800
+}; // window size; updates on reshape
 std::vector<std::vector<Point>> manifold_pts; // sampled points of manifold; will be sampled only once
 
 
@@ -54,11 +57,6 @@ int main(int argc, char** argv) {
 	init_matrix(scale_matrix);
 	init_matrix(translate_matrix);
 	glClearColor(0, 0, 0, 0);
-
-	glEnable(GL_LIGHTING);
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_NORMALIZE);
-	glShadeModel(GL_SMOOTH);
 
 	glutMainLoop();
 
@@ -173,7 +171,6 @@ void on_keyboard(unsigned char key, int x, int y) {
 		// increasing LR
 
 		LEARNING_RATE *= (1.0 + LR_STEP);
-		std::cerr << "LEARNING RATE: " << LEARNING_RATE << std::endl;
 		glutPostRedisplay();
 		break;
 	case 'Q':
@@ -181,7 +178,6 @@ void on_keyboard(unsigned char key, int x, int y) {
 		// decreasing LR
 
 		LEARNING_RATE *= (1.0 - LR_STEP);
-		std::cerr << "LEARNING RATE: " << LEARNING_RATE << std::endl;
 		glutPostRedisplay();
 		break;
 	case 'R':
@@ -238,64 +234,27 @@ void on_special(int key, int x, int y) {
 }
 
 void on_reshape(int width, int height) {
-	window_size = std::make_pair(width, height);
-
-	glViewport(
-		static_cast<GLint>(0),
-		static_cast<GLint>(0),
-		static_cast<GLsizei>(width),
-		static_cast<GLsizei>(height)
-	);
-
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluPerspective(
-		static_cast<GLdouble>(60.0),
-		static_cast<GLdouble>(width / height),
-		static_cast<GLdouble>(1.0),
-		static_cast<GLdouble>(100.0)
-	);
+	window_size = std::make_pair(width, height);	
 }
 
 void on_display(void) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	if (manifold) {
-		GLdouble center_x = static_cast<GLdouble>(barycenter.x);
-		GLdouble center_y = static_cast<GLdouble>(barycenter.z);
-		GLdouble center_z = static_cast<GLdouble>(barycenter.y);
-		GLdouble eye_x = center_x + 20;
-		GLdouble eye_y = center_y + 30;
-		GLdouble eye_z = center_z + 20;
+	glViewport(
+		static_cast<GLint>(0),
+		static_cast<GLint>(0),
+		static_cast<GLsizei>(window_size.first * SPLIT_SCREEN_RATIO),
+		static_cast<GLsizei>(window_size.second)
+	);
+	show_visualization();
 
-		gluLookAt(
-			eye_x, eye_y, eye_z,
-			center_x, center_y, center_z,
-			0, 1, 0
-		);
-	}
-	glMultMatrixf(rotate_matrix); // rotation from mouse motion
-	glMultMatrixf(scale_matrix); // scale from mouse scroll
-	glMultMatrixf(translate_matrix); // translation from arrow keys
-
-	GLfloat light_position[] = { 0, 1, 0, 0};
-	GLfloat ambient_light[] = { 0.1, 0.1, 0.1, 1 };
-	GLfloat diffuse_light[] = { 0.7, 0.7, 0.7, 1 };
-	GLfloat specular_light[] = { 0.9, 0.9, 0.9, 1 };
-
-	glEnable(GL_LIGHT0);
-	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-	glLightfv(GL_LIGHT0, GL_AMBIENT, ambient_light);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse_light);
-	glLightfv(GL_LIGHT0, GL_SPECULAR, specular_light);
-
-	if (manifold) {
-		draw_manifold();
-		if (initialized_animation)
-			draw_sphere(SPHERE_RADIUS);
-	}
+	glViewport(
+		static_cast<GLint>(window_size.first * SPLIT_SCREEN_RATIO),
+		static_cast<GLint>(0),
+		static_cast<GLsizei>(window_size.first * (1 - SPLIT_SCREEN_RATIO)),
+		static_cast<GLsizei>(window_size.second)
+	);
+	show_log();
 
 	glutSwapBuffers();
 }
@@ -311,8 +270,6 @@ void on_timer(int id) {
 
 	glutPostRedisplay();
 
-	std::cerr << "Sphere center: " << sphere_center << std::endl;
-	std::cerr << "Gradient: " << manifold->grad(sphere_center) << std::endl;
 	sphere_center = sphere_center - manifold->grad(sphere_center) * LEARNING_RATE;
 	sphere_center.x = std::clamp(sphere_center.x, -X_ABSMAX, X_ABSMAX); // ensure to fit the window
 	sphere_center.y = std::clamp(sphere_center.y, -Y_ABSMAX, Y_ABSMAX); // ensure to fit the window
@@ -363,6 +320,139 @@ void on_motion(int x, int y) {
 	glPopMatrix();
 
 	glutPostRedisplay();
+}
+
+void show_visualization() {
+	glEnable(GL_LIGHTING);
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_NORMALIZE);
+	glShadeModel(GL_SMOOTH);
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluPerspective(
+		static_cast<GLdouble>(60.0),
+		static_cast<GLdouble>(window_size.first * 0.75 / window_size.second),
+		static_cast<GLdouble>(1.0),
+		static_cast<GLdouble>(100.0)
+	);
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	if (manifold) {
+		GLdouble center_x = static_cast<GLdouble>(barycenter.x);
+		GLdouble center_y = static_cast<GLdouble>(barycenter.z);
+		GLdouble center_z = static_cast<GLdouble>(barycenter.y);
+		GLdouble eye_x = center_x + 20;
+		GLdouble eye_y = center_y + 30;
+		GLdouble eye_z = center_z + 20;
+
+		gluLookAt(
+			eye_x, eye_y, eye_z,
+			center_x, center_y, center_z,
+			0, 1, 0
+		);
+	}
+	glMultMatrixf(rotate_matrix); // rotation from mouse motion
+	glMultMatrixf(scale_matrix); // scale from mouse scroll
+	glMultMatrixf(translate_matrix); // translation from arrow keys
+
+	GLfloat light_position[] = { 0, 1, 0, 0 };
+	GLfloat ambient_light[] = { 0.1, 0.1, 0.1, 1 };
+	GLfloat diffuse_light[] = { 0.7, 0.7, 0.7, 1 };
+	GLfloat specular_light[] = { 0.9, 0.9, 0.9, 1 };
+
+	glEnable(GL_LIGHT0);
+	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+	glLightfv(GL_LIGHT0, GL_AMBIENT, ambient_light);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse_light);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, specular_light);
+
+	if (manifold) {
+		draw_manifold();
+		if (initialized_animation)
+			draw_sphere(SPHERE_RADIUS);
+	}
+}
+
+void show_log() {
+	glDisable(GL_LIGHTING);
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_NORMALIZE);
+	glDisable(GL_SMOOTH);
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluOrtho2D(0, window_size.first * (1 - SPLIT_SCREEN_RATIO), 0, window_size.second);
+	glTranslatef(0, window_size.second - 50, 0);
+	glScalef(FONT_SCALE, FONT_SCALE, 1);
+
+	std::vector<std::string> msgs;
+
+	glLineWidth(1);
+	glColor3f(1.0, 1.0, 1.0);
+	if (manifold) {
+		std::string msg = "Selected manifold: ";
+		switch (manifold_type){
+		case ManifoldType::elliptic_paraboloid:
+			msg += "Elliptic paraboloid\n";
+			break;
+		case ManifoldType::hyperbolic_paraboloid:
+			msg += "Hyperbolic paraboloid\n";
+			break;
+		case ManifoldType::multivariate_sine:
+			msg += "Multivariate sine\n";
+			break;
+		case ManifoldType::cubic_product:
+			msg += "Cubic product\n";
+			break;
+		default:
+			break;
+		}
+		msgs.emplace_back(msg);
+		msgs.emplace_back("\n");
+		msgs.emplace_back("Learning rate: " + std::to_string(LEARNING_RATE) + "\n");
+		
+		if (ongoing_animation) {
+			msgs.emplace_back(
+				"Current point: (" +
+				std::to_string(sphere_center.x) +
+				", " +
+				std::to_string(sphere_center.y) +
+				", " +
+				std::to_string(sphere_center.z) +
+				")\n"
+			);
+			msgs.emplace_back(
+				"Gradient magnitude: " +
+				std::to_string(LinearAlgebra::norm(manifold->grad(sphere_center)))
+			);
+		}
+	}
+	else {
+		msgs.emplace_back("(1) Elliptic paraboloid");
+		msgs.emplace_back("(2) Hyperbolic paraboloid");
+		msgs.emplace_back("(3) Multivariate sine");
+		msgs.emplace_back("(4) Cubic product");
+	}
+
+	show_text(msgs);
+}
+
+void show_text(const std::vector<std::string>& msgs) {
+	for (const std::string msg : msgs) {
+		glPushMatrix();
+		for (const char c : msg) {
+			glutStrokeCharacter(GLUT_STROKE_MONO_ROMAN, c);
+		}
+		glPopMatrix();
+		glScalef(1.0 / FONT_SCALE, 1.0 / FONT_SCALE, 1);
+		glTranslatef(0, -FONT_SPACING, 0);
+		glScalef(FONT_SCALE, FONT_SCALE, 1);
+	}
 }
 
 void init_matrix(GLfloat* matrix) {
