@@ -5,21 +5,27 @@
 
 #include "shared.h"
 
-// constants
+// text & font
 const unsigned char TEXT_COLOR[] = { 255, 255, 255 };
-const int MANIFOLD_SAMPLE_SIZE = 500; // how many points to sample from manifold
-const int TIMER_ID = 0;
-const int TIMER_INTERVAL = 10; // how much does each iteration last
-const double LR_STEP = 0.25; // percentage of LR change
-const double SPHERE_RADIUS = 0.25; // size of GD sphere
-const double SCALE_FACTOR = 1.1; // how much does zoom change per keypress
-const double TRANSLATE_FACTOR = 0.25;
-const double X_ABSMAX = 10;
-const double Y_ABSMAX = 10;
-const double SPLIT_SCREEN_RATIO = 0.6; // ratio of viewports' widths
 const double TEXT_SPACING = 30; // spacing between two rows of text
 const double FONT_SCALE = 1e-1;
 const double TEXT_WIDTH = 1.0;
+
+// window
+const double SPLIT_SCREEN_RATIO = 0.6; // ratio of viewports' widths
+const double TRANSLATE_FACTOR = 0.25; // how much movement in each direction
+const double SCALE_FACTOR = 1.1; // how much does zoom change per keypress
+
+// gradient descent & manifold
+const int MANIFOLD_SAMPLE_SIZE = 500; // how many points to sample from manifold
+const double LR_STEP = 0.25; // percentage of LR change
+const double SPHERE_RADIUS = 0.25; // size of GD sphere
+const double X_ABSMAX = 10; // min/max X coordinate of sample region
+const double Y_ABSMAX = 10; // min/max Y coordinate of sample region
+
+// timer
+const int TIMER_ID = 0;
+const int TIMER_INTERVAL = 10; // how much does each iteration last
 
 const std::pair<int, int> WINDOW_POS = { 0, 0 };
 std::default_random_engine rnd_gen;
@@ -35,7 +41,7 @@ void on_motion(int, int);
 
 void show_visualization(void);
 void show_log(void);
-void show_text(const std::vector<std::string>&);
+void render_text(const std::vector<std::string>&);
 
 void init_matrix(GLfloat*);
 void init_manifold(void);
@@ -51,3 +57,12 @@ enum class ManifoldType {
 	elliptic_paraboloid, hyperbolic_paraboloid,
 	multivariate_sine, cubic_product
 } manifold_type;
+
+namespace Interface {
+	const unsigned char init_animation = 'i';
+	const unsigned char start_animation = 'g';
+	const unsigned char pause_animation = 's';
+	const unsigned char increase_lr = 'e';
+	const unsigned char decrease_lr = 'q';
+	const unsigned char reset_view = 'r';
+}

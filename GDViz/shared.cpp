@@ -49,6 +49,10 @@ Point Point::operator-(const Point& pt) const {
 }
 
 std::ostream& operator<<(std::ostream& out, const Point& pt) {
+	/*
+	Returns (x, y, z; nx, ny, nz).
+	*/
+
 	out << "(" << pt.x << ", " << pt.y << ", " << pt.z << "; " <<
 		pt.nx << ", " << pt.ny << ", " << pt.nz << ")";
 

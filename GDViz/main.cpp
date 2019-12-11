@@ -5,6 +5,7 @@
 #include <algorithm>
 
 #include <GL/glut.h>
+
 #include "CubicProduct.h"
 #include "EllipticParaboloid.h"
 #include "HyperbolicParaboloid.h"
@@ -22,7 +23,7 @@ By selecting proper manifold (see on_keyboard()), manifold be drawn.
 */
 
 bool initialized_animation, ongoing_animation;
-double LEARNING_RATE = 0.01;
+double LEARNING_RATE = 0.01; // can be changed on keypress
 GLfloat rotate_matrix[16], scale_matrix[16], translate_matrix[16];
 
 Point sphere_center; // sphere used for GD
@@ -34,7 +35,7 @@ std::pair<int, int> window_size = {
 	static_cast<int>(800.0 / SPLIT_SCREEN_RATIO),
 	800
 }; // window size; updates on reshape
-std::vector<std::vector<Point>> manifold_pts; // sampled points of manifold; will be sampled only once
+std::vector<std::vector<Point>> manifold_pts; // sampled points of manifold
 
 
 int main(int argc, char** argv) {
@@ -72,6 +73,7 @@ void on_keyboard(unsigned char key, int x, int y) {
 	(!) glutPostRedisplay() won't be called in case the same manifold is chosen twice.
 	*/
 
+	// random sample point
 	double dir_x = distribution(rnd_gen);
 	double dir_y = distribution(rnd_gen);
 
@@ -142,8 +144,7 @@ void on_keyboard(unsigned char key, int x, int y) {
 			glutPostRedisplay();
 		}
 		break;
-	case 'I':
-	case 'i':
+	case Interface::init_animation:
 		// initializing animation
 
 		sphere_center = manifold->sample(X_ABSMAX * dir_x, Y_ABSMAX * dir_y); // random point on manifold
@@ -151,8 +152,7 @@ void on_keyboard(unsigned char key, int x, int y) {
 		ongoing_animation = false;
 		glutPostRedisplay();
 		break;
-	case 'G':
-	case 'g':
+	case Interface::start_animation:
 		// starting animation
 
 		if (!ongoing_animation && initialized_animation) {
@@ -160,28 +160,24 @@ void on_keyboard(unsigned char key, int x, int y) {
 			glutTimerFunc(TIMER_INTERVAL, on_timer, TIMER_ID);
 		}
 		break;
-	case 'S':
-	case 's':
+	case Interface::pause_animation:
 		// stopping animation
 
 		ongoing_animation = false;
 		break;
-	case 'E':
-	case 'e':
+	case Interface::increase_lr:
 		// increasing LR
 
 		LEARNING_RATE *= (1.0 + LR_STEP);
 		glutPostRedisplay();
 		break;
-	case 'Q':
-	case 'q':
+	case Interface::decrease_lr:
 		// decreasing LR
 
 		LEARNING_RATE *= (1.0 - LR_STEP);
 		glutPostRedisplay();
 		break;
-	case 'R':
-	case 'r':
+	case Interface::reset_view:
 		// nullifying scale, translation and rotation matrices
 
 		mouse_pos = std::make_pair(0, 0);
@@ -270,10 +266,10 @@ void on_timer(int id) {
 
 	glutPostRedisplay();
 
-	sphere_center = sphere_center - manifold->grad(sphere_center) * LEARNING_RATE;
+	sphere_center = sphere_center - manifold->grad(sphere_center) * LEARNING_RATE; // GD step
 	sphere_center.x = std::clamp(sphere_center.x, -X_ABSMAX, X_ABSMAX); // ensure to fit the window
 	sphere_center.y = std::clamp(sphere_center.y, -Y_ABSMAX, Y_ABSMAX); // ensure to fit the window
-	sphere_center = manifold->sample(sphere_center.x, sphere_center.y);
+	sphere_center = manifold->sample(sphere_center.x, sphere_center.y); // sampling new point
 
 	if (ongoing_animation)
 		glutTimerFunc(TIMER_INTERVAL, on_timer, TIMER_ID);
@@ -303,6 +299,10 @@ void on_mouse(int button, int state, int x, int y) {
 }
 
 void on_motion(int x, int y) {
+	/*
+	Rotate scene around X or Y axis based on mouse motion.
+	*/
+
 	int delta_x = x - mouse_pos.first;
 	int delta_y = y - mouse_pos.second;
 	mouse_pos = std::make_pair(x, y);
@@ -310,13 +310,15 @@ void on_motion(int x, int y) {
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 	glLoadIdentity();
+
 	GLfloat angle_factor = 180.0;
 	GLfloat angle_x = static_cast<GLfloat>(delta_x) / window_size.first;
 	GLfloat angle_y = static_cast<GLfloat>(delta_y) / window_size.second;
 	glRotatef(angle_factor * angle_x, 0, 1, 0);
 	glRotatef(angle_factor * angle_y, 1, 0, 0);
+
 	glMultMatrixf(rotate_matrix);
-	glGetFloatv(GL_MODELVIEW_MATRIX, rotate_matrix);
+	glGetFloatv(GL_MODELVIEW_MATRIX, rotate_matrix); // saving new model matrix
 	glPopMatrix();
 
 	glutPostRedisplay();
@@ -376,6 +378,10 @@ void show_visualization() {
 }
 
 void show_log() {
+	/*
+	Showing log on the screen: learning rate, position and gradient's magnitude.
+	*/
+
 	glDisable(GL_LIGHTING);
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_NORMALIZE);
@@ -411,9 +417,17 @@ void show_log() {
 		}
 		msgs.emplace_back(msg);
 		msgs.emplace_back("\n");
+
+		msgs.emplace_back(std::string(1, Interface::init_animation) + ": initialize animation\n");
+		msgs.emplace_back(std::string(1, Interface::start_animation) + ": start animation\n");
+		msgs.emplace_back(std::string(1, Interface::pause_animation) + ": pause animation\n");
+		msgs.emplace_back(std::string(1, Interface::increase_lr) +  ": increase learning rate\n");
+		msgs.emplace_back(std::string(1, Interface::decrease_lr) + ": decrease learning rate\n");
+		msgs.emplace_back("\n");
+
 		msgs.emplace_back("Learning rate: " + std::to_string(LEARNING_RATE) + "\n");
 		
-		if (ongoing_animation) {
+		if (initialized_animation) {
 			msgs.emplace_back(
 				"Current point: (" +
 				std::to_string(sphere_center.x) +
@@ -423,10 +437,12 @@ void show_log() {
 				std::to_string(sphere_center.z) +
 				")\n"
 			);
-			msgs.emplace_back(
-				"Gradient magnitude: " +
-				std::to_string(LinearAlgebra::norm(manifold->grad(sphere_center)))
-			);
+
+			if (ongoing_animation)
+				msgs.emplace_back(
+					"Gradient magnitude: " +
+					std::to_string(LinearAlgebra::norm(manifold->grad(sphere_center)))
+				);
 		}
 	}
 	else {
@@ -436,10 +452,15 @@ void show_log() {
 		msgs.emplace_back("(4) Cubic product");
 	}
 
-	show_text(msgs);
+	render_text(msgs);
 }
 
-void show_text(const std::vector<std::string>& msgs) {
+void render_text(const std::vector<std::string>& msgs) {
+	/*
+	Rendering text on the scene.
+	Text is scaled on reasonable size.
+	*/
+
 	glLineWidth(static_cast<GLfloat>(1));
 	glColor3ubv(TEXT_COLOR);
 
@@ -456,6 +477,10 @@ void show_text(const std::vector<std::string>& msgs) {
 }
 
 void init_matrix(GLfloat* matrix) {
+	/*
+	Makes given matrix identity.
+	*/
+
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 	glLoadIdentity();
@@ -464,6 +489,10 @@ void init_matrix(GLfloat* matrix) {
 }
 
 void init_manifold(void) {
+	/*
+	Sampling selected manifold in case it's not.
+	*/
+
 	if (!manifold->get_lazy_flag()) {
 		std::pair<double, double> x_range = { -X_ABSMAX, X_ABSMAX };
 		std::pair<double, double> y_range = { -Y_ABSMAX, Y_ABSMAX };
@@ -484,6 +513,7 @@ void draw_manifold() {
 	It's drawn as stripes of triangles.
 	*/
 
+	// violet
 	GLfloat ambient_material[] = { 0.5, 0.5, 0.5, 1 };
 	GLfloat diffuse_material[] = { 0.25, 0.25, 0.75, 1 };
 	GLfloat specular_material[] = { 0.5, 0, 0, 1 };
@@ -516,6 +546,8 @@ void draw_sphere(double r) {
 	Used for GD visualization.
 	*/
 
+
+	// orange
 	GLfloat ambient_material[] = { 0.25, 0.25, 0.25, 1 };
 	GLfloat diffuse_material[] = { 0.75, 0.5, 0.25, 1 };
 	GLfloat specular_material[] = { 1, 0, 0, 1 };
@@ -533,6 +565,11 @@ void draw_sphere(double r) {
 }
 
 Point calc_barycenter(const std::vector<Point>& pts) {
+	/*
+	Calculating barycenter of sampled points.
+	Camera will be looking at the barycenter.
+	*/
+	
 	Point barycenter;
 	for (const Point& pt : pts)
 		barycenter = barycenter + pt;
