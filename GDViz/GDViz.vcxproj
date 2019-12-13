@@ -134,6 +134,8 @@
     <ClCompile Include="ManifoldBase.cpp" />
     <ClCompile Include="MultivariateSine.cpp" />
     <ClCompile Include="shared.cpp" />
+    <ClCompile Include="stb_image.cpp" />
+    <ClCompile Include="Texture.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CubicProduct.h" />
@@ -143,6 +145,11 @@
     <ClInclude Include="ManifoldBase.h" />
     <ClInclude Include="MultivariateSine.h" />
     <ClInclude Include="shared.h" />
+    <ClInclude Include="stb_image.h" />
+    <ClInclude Include="Texture.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Resources\sphere_texture.bmp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

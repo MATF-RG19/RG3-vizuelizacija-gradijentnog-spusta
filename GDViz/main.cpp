@@ -9,9 +9,10 @@
 #include "CubicProduct.h"
 #include "EllipticParaboloid.h"
 #include "HyperbolicParaboloid.h"
-#include "MultivariateSine.h"
 #include "main.h"
+#include "MultivariateSine.h"
 #include "shared.h"
+#include "Texture.h"
 
 /*
 -Upon starting the program, background will be black without any other object.
@@ -345,9 +346,9 @@ void show_visualization() {
 		GLdouble center_x = static_cast<GLdouble>(barycenter.x);
 		GLdouble center_y = static_cast<GLdouble>(barycenter.z);
 		GLdouble center_z = static_cast<GLdouble>(barycenter.y);
-		GLdouble eye_x = center_x + 20;
-		GLdouble eye_y = center_y + 30;
-		GLdouble eye_z = center_z + 20;
+		GLdouble eye_x = center_x + 20.0;
+		GLdouble eye_y = center_y + 30.0;
+		GLdouble eye_z = center_z + 20.0;
 
 		gluLookAt(
 			eye_x, eye_y, eye_z,
@@ -375,17 +376,17 @@ void show_visualization() {
 		if (initialized_animation)
 			draw_sphere(SPHERE_RADIUS);
 	}
+
+	glDisable(GL_LIGHTING);
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_NORMALIZE);
+	glDisable(GL_SMOOTH);
 }
 
 void show_log() {
 	/*
 	Showing log on the screen: learning rate, position and gradient's magnitude.
 	*/
-
-	glDisable(GL_LIGHTING);
-	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_NORMALIZE);
-	glDisable(GL_SMOOTH);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
@@ -546,22 +547,40 @@ void draw_sphere(double r) {
 	Used for GD visualization.
 	*/
 
-
-	// orange
-	GLfloat ambient_material[] = { 0.25, 0.25, 0.25, 1 };
-	GLfloat diffuse_material[] = { 0.75, 0.5, 0.25, 1 };
-	GLfloat specular_material[] = { 1, 0, 0, 1 };
-	GLfloat shininess = 10;
-	glMaterialfv(GL_FRONT, GL_AMBIENT, ambient_material);
-	glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse_material);
-	glMaterialfv(GL_FRONT, GL_SPECULAR, specular_material);
-	glMaterialf(GL_FRONT, GL_SHININESS, shininess);
+	glEnable(GL_TEXTURE_2D);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 	glTranslatef(sphere_center.x, sphere_center.z, sphere_center.y);
-	glutSolidSphere(r, 50, 50);
+
+	Texture texture("Resources/sphere_texture.bmp"); // used for mapping texture to sphere
+	texture.bind();
+
+	std::vector<double> theta_vec = LinearAlgebra::linspace(0.0, 2.0 * PI,
+		MANIFOLD_SAMPLE_SIZE);
+	std::vector<double> phi_vec = LinearAlgebra::linspace(0.0, PI,
+		MANIFOLD_SAMPLE_SIZE);
+
+	glBegin(GL_POINTS); // sampling sphere
+	{
+		for (const double& phi : phi_vec) {
+			for (const double& theta : theta_vec) {
+				GLfloat x = static_cast<GLfloat>(r * cos(theta) * sin(phi));
+				GLfloat y = static_cast<GLfloat>(r * sin(theta) * sin(phi));
+				GLfloat z = static_cast<GLfloat>(r * cos(phi));
+
+				glNormal3f(2.0 * x, 2.0 * z, 2.0 * y);
+				glTexCoord2f(0.5 * (1.0 + x / r), 0.5 * (1.0 + y / r)); // fitting in (s, t) system
+				glVertex3f(x, z, y);
+			}
+		}
+	}
+	glEnd();
+	
 	glPopMatrix();
+	texture.unbind();
+	glDisable(GL_TEXTURE_2D);
 }
 
 Point calc_barycenter(const std::vector<Point>& pts) {

@@ -5,8 +5,8 @@ Contains functions and constants that are shared across whole project.
 */
 
 #include <iostream> // ostream
-#include <vector>
 #include <math.h> // sqrt
+#include <vector>
 
 const double EPS = 1e-16;
 const double PI = 3.14159265359;
