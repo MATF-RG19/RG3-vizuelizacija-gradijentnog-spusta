@@ -424,6 +424,7 @@ void show_log() {
 		msgs.emplace_back(std::string(1, Interface::pause_animation) + ": pause animation\n");
 		msgs.emplace_back(std::string(1, Interface::increase_lr) +  ": increase learning rate\n");
 		msgs.emplace_back(std::string(1, Interface::decrease_lr) + ": decrease learning rate\n");
+		msgs.emplace_back(std::string(1, Interface::reset_view) + ": reset view\n");
 		msgs.emplace_back("\n");
 
 		msgs.emplace_back("Learning rate: " + std::to_string(LEARNING_RATE) + "\n");
