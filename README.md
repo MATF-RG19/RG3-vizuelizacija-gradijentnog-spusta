@@ -26,4 +26,4 @@ Scenu je moguće kontrolisati putem strelica (translacije), skrolovanja mišem
 ## Zavisnosti i instalacija
 Korišćeno razvojno okruženje je Visual Studio. Dovoljno je pokrenuti `*.sln` fajl. Korišćena je biblioteka `OpenGL` (`FreeGlut`).
 
-_Valjanost izvršavanja na Linux sistemima nije garantovana._
+_Valjanost izvršavanja na Linux sistemima nije garantovano._
