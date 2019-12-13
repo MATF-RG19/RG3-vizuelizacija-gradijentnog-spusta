@@ -21,46 +21,63 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ManifoldBase.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="EllipticParaboloid.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="shared.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="HyperbolicParaboloid.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="stb_image.cpp">
+      <Filter>Resource Files</Filter>
     </ClCompile>
-    <ClCompile Include="MultivariateSine.cpp">
+    <ClCompile Include="Texture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CubicProduct.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Header Files\Manifold</Filter>
+    </ClCompile>
+    <ClCompile Include="EllipticParaboloid.cpp">
+      <Filter>Header Files\Manifold</Filter>
+    </ClCompile>
+    <ClCompile Include="HyperbolicParaboloid.cpp">
+      <Filter>Header Files\Manifold</Filter>
+    </ClCompile>
+    <ClCompile Include="MultivariateSine.cpp">
+      <Filter>Header Files\Manifold</Filter>
+    </ClCompile>
+    <ClCompile Include="ManifoldBase.cpp">
+      <Filter>Header Files\Manifold</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="shared.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ManifoldBase.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="EllipticParaboloid.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="HyperbolicParaboloid.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MultivariateSine.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="main.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CubicProduct.h">
+    <ClInclude Include="stb_image.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Texture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CubicProduct.h">
+      <Filter>Header Files\Manifold</Filter>
+    </ClInclude>
+    <ClInclude Include="EllipticParaboloid.h">
+      <Filter>Header Files\Manifold</Filter>
+    </ClInclude>
+    <ClInclude Include="HyperbolicParaboloid.h">
+      <Filter>Header Files\Manifold</Filter>
+    </ClInclude>
+    <ClInclude Include="ManifoldBase.h">
+      <Filter>Header Files\Manifold</Filter>
+    </ClInclude>
+    <ClInclude Include="MultivariateSine.h">
+      <Filter>Header Files\Manifold</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Resources\sphere_texture.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>
