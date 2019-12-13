@@ -30,20 +30,20 @@
     <ClCompile Include="Texture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CubicProduct.cpp">
-      <Filter>Header Files\Manifold</Filter>
-    </ClCompile>
-    <ClCompile Include="EllipticParaboloid.cpp">
-      <Filter>Header Files\Manifold</Filter>
-    </ClCompile>
-    <ClCompile Include="HyperbolicParaboloid.cpp">
-      <Filter>Header Files\Manifold</Filter>
-    </ClCompile>
     <ClCompile Include="MultivariateSine.cpp">
-      <Filter>Header Files\Manifold</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ManifoldBase.cpp">
-      <Filter>Header Files\Manifold</Filter>
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="HyperbolicParaboloid.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="EllipticParaboloid.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CubicProduct.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
