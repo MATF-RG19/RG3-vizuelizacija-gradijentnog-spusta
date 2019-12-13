@@ -1,7 +1,7 @@
 #include <GL/glut.h>
 
-#include "Texture.h"
 #include "stb_image.h"
+#include "Texture.h"
 
 Texture::Texture(const std::string& file_path)
 	: file_path(file_path), buffer(nullptr),
@@ -39,4 +39,5 @@ void Texture::bind() const {
 }
 
 void Texture::unbind() const {
+	glBindTexture(GL_TEXTURE_2D, 0);
 }

@@ -9,10 +9,10 @@
 #include "CubicProduct.h"
 #include "EllipticParaboloid.h"
 #include "HyperbolicParaboloid.h"
-#include "MultivariateSine.h"
-#include "Texture.h"
 #include "main.h"
+#include "MultivariateSine.h"
 #include "shared.h"
+#include "Texture.h"
 
 /*
 -Upon starting the program, background will be black without any other object.
@@ -566,12 +566,12 @@ void draw_sphere(double r) {
 	{
 		for (const double& phi : phi_vec) {
 			for (const double& theta : theta_vec) {
-				double x = r * cos(theta) * sin(phi);
-				double y = r * sin(theta) * sin(phi);
-				double z = r * cos(phi);
+				GLfloat x = static_cast<GLfloat>(r * cos(theta) * sin(phi));
+				GLfloat y = static_cast<GLfloat>(r * sin(theta) * sin(phi));
+				GLfloat z = static_cast<GLfloat>(r * cos(phi));
 
-				glNormal3f(2 * x, 2 * z, 2 * y);
-				glTexCoord2f(0.5 + x / (2 * r), 0.5 + y / (2 * r)); // fitting in (s, t) system
+				glNormal3f(2.0 * x, 2.0 * z, 2.0 * y);
+				glTexCoord2f(0.5 * (1.0 + x / r), 0.5 * (1.0 + y / r)); // fitting in (s, t) system
 				glVertex3f(x, z, y);
 			}
 		}
@@ -579,6 +579,7 @@ void draw_sphere(double r) {
 	glEnd();
 	
 	glPopMatrix();
+	texture.unbind();
 	glDisable(GL_TEXTURE_2D);
 }
 

@@ -1,6 +1,6 @@
+#include <iostream>
 #include <math.h>
 #include <stdexcept>
-#include <iostream>
 
 #include "shared.h"
 

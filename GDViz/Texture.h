@@ -1,9 +1,12 @@
 #pragma once
+
 #include <string>
+
+#include <GL/glut.h>
 
 class Texture {
 private:
-	unsigned int name;
+	GLuint name;
 	std::string file_path;
 	unsigned char* buffer;
 	int width, height, channels;
