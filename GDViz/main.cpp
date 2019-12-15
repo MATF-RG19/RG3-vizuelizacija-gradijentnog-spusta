@@ -393,9 +393,22 @@ void show_log() {
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	gluOrtho2D(0, window_size.first * (1 - SPLIT_SCREEN_RATIO), 0, window_size.second);
-	glTranslatef(0, window_size.second - TEXT_SPACING, 0);
-	glScalef(FONT_SCALE, FONT_SCALE, 1);
+	gluOrtho2D(
+		static_cast<GLdouble>(0),
+		static_cast<GLdouble>(window_size.first * (1 - SPLIT_SCREEN_RATIO)),
+		static_cast<GLdouble>(0),
+		static_cast<GLdouble>(window_size.second)
+	);
+	glTranslatef(
+		static_cast<GLfloat>(0),
+		static_cast<GLfloat>(window_size.second - TEXT_SPACING),
+		static_cast<GLfloat>(0)
+	);
+	glScalef(
+		static_cast<GLfloat>(FONT_SCALE),
+		static_cast<GLfloat>(FONT_SCALE),
+		static_cast<GLfloat>(1)
+	);
 
 	std::vector<std::string> msgs;
 	if (manifold) {
