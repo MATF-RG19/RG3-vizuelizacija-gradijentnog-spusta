@@ -335,7 +335,7 @@ void show_visualization() {
 	glLoadIdentity();
 	gluPerspective(
 		static_cast<GLdouble>(60.0),
-		static_cast<GLdouble>(window_size.first * 0.75 / window_size.second),
+		static_cast<GLdouble>(window_size.first / window_size.second),
 		static_cast<GLdouble>(1.0),
 		static_cast<GLdouble>(100.0)
 	);
