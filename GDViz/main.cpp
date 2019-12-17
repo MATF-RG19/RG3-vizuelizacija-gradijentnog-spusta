@@ -544,12 +544,12 @@ void draw_manifold() {
 		glBegin(GL_TRIANGLE_STRIP);
 		for (int j = 0; j < MANIFOLD_SAMPLE_SIZE; j++) {
 			Point cur_pt = sampled[i][j];
-			glVertex3f(cur_pt.x, cur_pt.z, cur_pt.y);
 			glNormal3f(cur_pt.nx, cur_pt.nz, cur_pt.ny);
+			glVertex3f(cur_pt.x, cur_pt.z, cur_pt.y);
 
 			Point prev_pt = sampled[i - 1][j];
-			glVertex3f(prev_pt.x, prev_pt.z, prev_pt.y);
 			glNormal3f(prev_pt.nx, prev_pt.nz, prev_pt.ny);
+			glVertex3f(prev_pt.x, prev_pt.z, prev_pt.y);
 		}
 		glEnd();
 	}
