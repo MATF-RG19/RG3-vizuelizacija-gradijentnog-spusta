@@ -4,24 +4,13 @@
 
 #include "shared.h"
 
-Point::Point() {
-	x = y = z = 0;
-	nx = ny = nz = 0;
-}
+Point::Point() : x(0), y(0), z(0), nx(0), ny(0), nz() {}
 
-Point::Point(double x, double y, double z) {
-	this->x = x;
-	this->y = y;
-	this->z = z;
-	nx = ny = nz = 0;
-}
+Point::Point(double x, double y, double z)
+	: x(x), y(y), z(z), nx(0), ny(0), nz(0) {}
 
-Point::Point(double x, double y, double z, double nx, double ny, double nz) {
-	Point::Point(x, y, z);
-	this->nx = nx;
-	this->ny = ny;
-	this->nz = nz;
-}
+Point::Point(double x, double y, double z, double nx, double ny, double nz) :
+	x(x), y(y), z(z), nx(nx), ny(ny), nz(nz) {}
 
 Point Point::operator*(const double lmbd) const {
 	Point ret;
