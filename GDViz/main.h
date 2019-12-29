@@ -1,3 +1,6 @@
+#ifndef _MAIN_H
+#define _MAIN_H
+
 #include <random>
 #include <string>
 #include <utility>
@@ -66,3 +69,5 @@ namespace Interface {
 	const unsigned char decrease_lr = 'q';
 	const unsigned char reset_view = 'r';
 }
+
+#endif

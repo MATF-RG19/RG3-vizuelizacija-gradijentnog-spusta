@@ -1,4 +1,6 @@
-#pragma once
+#ifndef _HYPERBOLICPARABOLOID_H
+#define _HYPERBOLICPARABOLOID_H
+
 #include "ManifoldBase.h"
 #include "shared.h"
 
@@ -26,3 +28,4 @@ public:
 	double get_b(void);
 };
 
+#endif

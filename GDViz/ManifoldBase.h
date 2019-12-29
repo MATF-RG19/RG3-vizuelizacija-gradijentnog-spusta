@@ -1,4 +1,6 @@
-#pragma once
+#ifndef _MANIFOLDBASE_H
+#define _MANIFOLDBASE_H
+
 #include <vector>
 #include <utility>
 
@@ -34,3 +36,5 @@ public:
 	void set_lazy_flag(bool);
 	bool get_lazy_flag(void);
 };
+
+#endif

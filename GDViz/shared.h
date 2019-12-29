@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _SHARED_H
+#define _SHARED_H
 
 /*
 Contains functions and constants that are shared across whole project.
@@ -103,3 +104,5 @@ std::ostream& operator << (std::ostream& out, const std::vector<T>& vec) {
 }
 
 int sign(double);
+
+#endif

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _CUBICPRODUCT_H
+#define _CUBICPRODUCT_H
 
 #include "ManifoldBase.h"
 #include "shared.h"
@@ -24,3 +25,5 @@ public:
 	double grad_z(const Point&);
 	double get_a(void);
 };
+
+#endif

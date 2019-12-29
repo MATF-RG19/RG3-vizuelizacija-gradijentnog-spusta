@@ -1,4 +1,6 @@
-#pragma once
+#ifndef _ELLIPTIC_PARABOLOID_H
+#define _ELLIPTIC_PARABOLOID_H
+
 #include "ManifoldBase.h"
 #include "shared.h"
 
@@ -25,3 +27,5 @@ public:
 	double get_a(void);
 	double get_b(void);
 };
+
+#endif
