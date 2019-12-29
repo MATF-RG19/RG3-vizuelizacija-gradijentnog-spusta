@@ -1,9 +1,9 @@
 PROGRAM = GDViz
-CC = g++ -std=c++14
+CC = g++ -std=c++17
 LIBS = -lGL -lGLU -lglut -lm
 
 $(PROGRAM): main.o shared.o stb_image.o ManifoldBase.o EllipticParaboloid.o HyperbolicParaboloid.o MultivariateSine.o CubicProduct.o Texture.o
-	$(CC) $(LIBS) -o $(PROGRAM) main.o shared.o stb_image.o ManifoldBase.o EllipticParaboloid.o HyperbolicParaboloid.o MultivariateSine.o CubicProduct.o Texture.o
+	$(CC) -o $(PROGRAM) main.o shared.o stb_image.o ManifoldBase.o EllipticParaboloid.o HyperbolicParaboloid.o MultivariateSine.o CubicProduct.o Texture.o $(LIBS)
 
 main.o: main.cpp CubicProduct.h EllipticParaboloid.h HyperbolicParaboloid.h main.h MultivariateSine.h shared.h Texture.h
 	$(CC) $(LIBS) -c main.cpp -o main.o
