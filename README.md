@@ -26,7 +26,10 @@ Scenu je moguće kontrolisati putem strelica (translacije), skrolovanja mišem
 
 ## :wrench: Zavisnosti i instalacija
 * Na operativnom sistemu Windows je dovoljno pokrenuti `GDViz.sln`.
-* Na Linux operativnim sistemima je dovoljno oktucati `make` u terminalu. **Potrebno je preći u** `makefile` **branch**.
+* Na Linux operativnim sistemima je dovoljno oktucati `make` u terminalu.
+**Potrebno je preći u** `makefile` **branch**. Nakon pokretanja `make` naredbe,
+biće generisan fajl `GDViz` koji je potrebno pokrenuti. Za uklanjanje svih propratnih
+fajlova, dovoljno je otkucati `make clean`.
 
 ## :warning: Ostalo
 * Biblioteka za rad sa slikama je preuzeta sa sledeće [adrese](https://github.com/nothings/stb).
